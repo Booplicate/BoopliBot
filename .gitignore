@@ -1,0 +1,14 @@
+*.vscode
+__pycache__
+*.pyc
+logs
+
+booplibot.db
+config.json
+start.bat
+start.sh
+
+*.ttf
+test.py
+_test.py
+listeners.py
