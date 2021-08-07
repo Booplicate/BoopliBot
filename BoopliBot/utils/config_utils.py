@@ -12,7 +12,8 @@ from typing import (
 )
 
 
-from ..errors import BadConfig
+from . import validate_prefix
+from ..errors import BadConfig, BadBotPrefix
 
 
 CONFIG_FILE = "config.json"
@@ -80,7 +81,9 @@ class Config:
         # Handle owners (we can have only one of these params, and better to have owner_ids as a set)
         if "owner_ids" in settings:
             if "owner_id" in settings:
-                raise BadConfig("Two mutually exclusive config settings are used at once: 'owner_id' and 'owner_ids'.")
+                raise BadConfig(
+                    "Two mutually exclusive config settings are used at once: 'owner_id' and 'owner_ids'."
+                )
 
             settings["owner_ids"] = set(settings["owner_ids"])
 
@@ -96,6 +99,12 @@ class Config:
 
         if req_settings:
             raise BadConfig("Missing required config settings: {0}.".format(", ".join(req_settings)))
+
+        try:
+            validate_prefix(settings["def_prefix"])
+
+        except BadBotPrefix as e:
+            raise BadConfig(f"Invalid default prefix: {e}") from None
 
         # TODO: add more as needed
 
