@@ -25,12 +25,12 @@ class Config:
     """
     A class to represent bot config. NOT thread-safe.
     """
-    __REQUIRED_SETTINGS = (
+    _REQUIRED_SETTINGS = (
         "token",
         "def_prefix",
         "shard_count"
     )
-    __SUPPORTED_SETTINGS = (
+    _SUPPORTED_SETTINGS = (
         "owner_id",
         "owner_ids",
         "activity_text",
@@ -38,13 +38,13 @@ class Config:
         "case_insensitive",
         "strip_after_prefix"
     )
-    __ALL_SETTINGS = __REQUIRED_SETTINGS + __SUPPORTED_SETTINGS
-    __OTHER_ATTRS = (
+    _ALL_SETTINGS = _REQUIRED_SETTINGS + _SUPPORTED_SETTINGS
+    _OTHER_ATTRS = (
         "config_fp",
         "__settings",
         "__dirty"
     )
-    __slots__ = __ALL_SETTINGS + __OTHER_ATTRS
+    __slots__ = _ALL_SETTINGS + _OTHER_ATTRS
 
     def __init__(self, config_fp: str) -> None:
         """
@@ -94,8 +94,8 @@ class Config:
             settings["owner_ids"] = set(settings["owner_ids"])
 
         # Make sure our settings are valid
-        req_settings = set(Config.__REQUIRED_SETTINGS)
-        sup_settings = set(Config.__SUPPORTED_SETTINGS)
+        req_settings = set(Config._REQUIRED_SETTINGS)
+        sup_settings = set(Config._SUPPORTED_SETTINGS)
         for key in settings:
             if key in req_settings:
                 req_settings.remove(key)
@@ -118,7 +118,7 @@ class Config:
         """
         Override for attribute getter
         """
-        if name in Config.__ALL_SETTINGS:
+        if name in Config._ALL_SETTINGS:
             return self.__settings.get(name, None)
 
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
@@ -127,7 +127,7 @@ class Config:
         """
         Override for attribute setter
         """
-        if name in Config.__ALL_SETTINGS:
+        if name in Config._ALL_SETTINGS:
             if name not in self.__settings or self.__settings[name] != value:
                 self.__dirty = True
             self.__settings[name] = value
