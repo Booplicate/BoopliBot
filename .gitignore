@@ -7,8 +7,8 @@ booplibot.db
 config.json
 start.bat
 start.sh
-run_test.bat
-run_test.sh
+run_tests.bat
+run_tests.sh
 
 *.ttf
 test.py
