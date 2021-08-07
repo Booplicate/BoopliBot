@@ -38,7 +38,25 @@ class Bot(commands.AutoShardedBot):
     Main class representing our discord bot
     """
     DEF_ACTIVITY = discord.Game(name=BoopliBot.__version__)
-    DEF_INTENTS = discord.Intents.all()
+    # DEF_INTENTS = discord.Intents.all()
+    DEF_INTENTS = discord.Intents(
+        bans=True,
+        dm_messages=False,
+        dm_reactions=False,
+        dm_typing=False,
+        emojis=True,
+        guild_messages=True,
+        guild_reactions=True,
+        guild_typing=False,
+        guilds=True,
+        integrations=False,
+        invites=False,
+        members=True,
+        presences=False,
+        voice_states=False,
+        webhooks=False
+    )
+    DEF_MENTIONS = discord.AllowedMentions(everyone=True, users=True, roles=True, replied_user=False)
 
     # We can use 64-113 and 0
     EXIT_CODE_QUIT = 0
@@ -63,9 +81,6 @@ class Bot(commands.AutoShardedBot):
         """
         Constructor
         """
-        # if "help_command" not in kwargs:
-        #     kwargs["help_command"] = HelpCommand()
-
         self.config = config
 
         kwargs = config.to_dict()
@@ -81,6 +96,7 @@ class Bot(commands.AutoShardedBot):
             command_prefix=Bot.__get_prefixes,
             activity=activity,
             intents=Bot.DEF_INTENTS,
+            allowed_mentions=Bot.DEF_MENTIONS,
             **kwargs
         )
 
@@ -154,13 +170,14 @@ class Bot(commands.AutoShardedBot):
                 )
                 result = await sesh.execute(stmt)
                 db_guilds_ids = set(result.scalars().all())
+                # Empty set means we went through all our data
                 if not db_guilds_ids:
                     break
 
                 missing_guilds_id -= db_guilds_ids
                 offset += STEP
 
-            # Still have ids? Means we're missing some rows in our db
+            # Still have ids? Then we're missing some rows in our db
             if missing_guilds_id:
                 # First, we log it
                 missing_guilds_fmt = ", ".join(map(str, missing_guilds_id))
@@ -306,7 +323,7 @@ class Bot(commands.AutoShardedBot):
         async with sql_utils.NewAsyncSession() as sesh:
             sesh: sql_utils.AsyncSession
             # Try to get a config for this guild
-            guild_config = await sesh.get(sql_utils.GuildConfig, guild_id)
+            guild_config: Optional[sql_utils.GuildConfig] = await sesh.get(sql_utils.GuildConfig, guild_id)
             # If doesn't exist, create a new one
             if guild_config is None:
                 guild_config = sql_utils.GuildConfig(guild_id=guild_id, prefix=prefix)
@@ -363,7 +380,7 @@ class Bot(commands.AutoShardedBot):
         async with sql_utils.NewAsyncSession() as sesh:
             sesh: sql_utils.AsyncSession
 
-            user_data = await sesh.get(sql_utils.User, (guild_id, user_id))
+            user_data: Optional[sql_utils.User] = await sesh.get(sql_utils.User, (guild_id, user_id))
 
             if user_data is not None:
                 user_data.current_warns += 1
@@ -389,7 +406,7 @@ class Bot(commands.AutoShardedBot):
         async with sql_utils.NewAsyncSession() as sesh:
             sesh: sql_utils.AsyncSession
 
-            user_data = await sesh.get(sql_utils.User, (guild_id, user_id))
+            user_data: Optional[sql_utils.User] = await sesh.get(sql_utils.User, (guild_id, user_id))
 
             if user_data is not None and user_data.current_warns > 0:
                 user_data.current_warns -= 1
@@ -410,7 +427,7 @@ class Bot(commands.AutoShardedBot):
         async with sql_utils.NewAsyncSession() as sesh:
             sesh: sql_utils.AsyncSession
 
-            user_data = await sesh.get(sql_utils.User, (guild_id, user_id))
+            user_data: Optional[sql_utils.User] = await sesh.get(sql_utils.User, (guild_id, user_id))
 
             if user_data is not None:
                 user_data.total_kicks += 1
@@ -437,7 +454,7 @@ class Bot(commands.AutoShardedBot):
         async with sql_utils.NewAsyncSession() as sesh:
             sesh: sql_utils.AsyncSession
 
-            user_data = await sesh.get(sql_utils.User, (guild_id, user_id))
+            user_data: Optional[sql_utils.User] = await sesh.get(sql_utils.User, (guild_id, user_id))
 
             if user_data is not None:
                 user_data.total_bans += 1
@@ -506,40 +523,48 @@ class Bot(commands.AutoShardedBot):
         elif isinstance(exc, errors.MissingRequiredSubCommand):
             sub_cmds = "/".join((sub_cmd.name for sub_cmd in command.commands))
             await context.send(
-                f"Missing required subcommand. Correct syntax: `{context.prefix}{command.qualified_name} <{sub_cmds}>`."
+                (
+                    f"Missing required subcommand. Correct syntax: "
+                    f"`{context.prefix}{command.qualified_name} <{sub_cmds}>`."
+                ),
+                reference=context.message
             )
 
         elif isinstance(exc, commands.MissingRequiredArgument):
             await context.send(
-                f"Missing required argument: `{exc.param.name}`. Correct syntax: `{context.prefix}{command.qualified_name} {command.signature}`."
+                (
+                    f"Missing required argument: `{exc.param.name}`. Correct syntax: "
+                    f"`{context.prefix}{command.qualified_name} {command.signature}`."
+                ),
+                reference=context.message
             )
 
         elif isinstance(exc, commands.RoleNotFound):
             role = discord.utils.escape_mentions(exc.argument)
-            await context.send(f"A role **{role}** was not found.")
+            await context.send(f"A role **{role}** was not found.", reference=context.message)
 
         elif isinstance(exc, errors.BadRole):
             role = discord.utils.escape_mentions(exc.argument.name)
-            await context.send(f"The role **{role}** cannot be used in this command.")
+            await context.send(f"The role **{role}** cannot be used in this command.", reference=context.message)
 
         elif isinstance(exc, commands.MemberNotFound):
             member = discord.utils.escape_mentions(exc.argument)
-            await context.send(f"A member **{member}** was not found.")
+            await context.send(f"A member **{member}** was not found.", reference=context.message)
 
         elif isinstance(exc, commands.UserNotFound):
             user = discord.utils.escape_mentions(exc.argument)
-            await context.send(f"A user **{user}** was not found.")
+            await context.send(f"A user **{user}** was not found.", reference=context.message)
 
         elif isinstance(exc, errors.MemberOrUserNotFound):
             memberuser = discord.utils.escape_mentions(exc.argument)
-            await context.send(f"A member or user **{memberuser}** was not found.")
+            await context.send(f"A member or user **{memberuser}** was not found.", reference=context.message)
 
         elif isinstance(exc, commands.EmojiNotFound):
             emoji = discord.utils.escape_mentions(exc.argument)
-            await context.send(f"An emote **{emoji}** was not found.")
+            await context.send(f"An emote **{emoji}** was not found.", reference=context.message)
 
         elif isinstance(exc, discord.Forbidden):
-            await context.send("Forbidden. I may need more permissions for this action.")
+            await context.send("Forbidden. I may need more permissions for this action.", reference=context.message)
 
         elif isinstance(exc, commands.BotMissingPermissions):
             perms = [
@@ -551,29 +576,47 @@ class Bot(commands.AutoShardedBot):
             else:
                 fmt = " and ".join(perms)
 
-            await context.send(f"I am missing permission(s) for this command: {fmt}.")
+            await context.send(f"I am missing permission(s) for this command: {fmt}.", reference=context.message)
 
         elif isinstance(exc, errors.BotTooLowInHierarchy):
-            await context.send("I cannot use this command on members with the same or a higher top role than I have.")
+            await context.send(
+                "I cannot use this command on members with the same or a higher top role than I have.",
+                reference=context.message
+            )
 
         elif isinstance(exc, commands.NoPrivateMessage):
-            await context.send(f"Command `{command.qualified_name}` cannot be used in private messages.")
+            await context.send(
+                f"Command `{command.qualified_name}` cannot be used in private messages.",
+                reference=context.message
+            )
 
         elif isinstance(exc, commands.NotOwner):
-            await context.send("You don't have permissions for this command.")
+            await context.send("You don't have permissions for this command.", reference=context.message)
 
         elif isinstance(exc, errors.MissingPermissionsAndNotOnSelf):
-            await context.send("You don't have permissions to use this command on other people.")
+            await context.send(
+                "You don't have permissions to use this command on other people.",
+                reference=context.message
+            )
 
         elif isinstance(exc, errors.TooLowInHierarchy):
-            await context.send("You cannot use this commands on members with the same or a higher top role than you have.")
+            await context.send(
+                "You cannot use this commands on members with the same or a higher top role than you have.",
+                reference=context.message
+            )
 
         elif isinstance(exc, commands.CommandOnCooldown):
-            await context.send(f"This command is on cooldown. Try again in **{exc.retry_after:0.2f}** second(s).")
+            await context.send(
+                f"This command is on cooldown. Try again in **{exc.retry_after:0.2f}** second(s).",
+                reference=context.message
+            )
+
+        elif isinstance(exc, commands.DisabledCommand):
+            await context.send("This command is temporary disabled.", reference=context.message)
 
         else:
             exc_repr = repr(exc)
             self.logger.error(f"Got unexpected exception in the '{context.command}' command: {exc_repr}", exc_info=exc)
-            await context.send(f"Got unexpected exception: **{exc_repr}**")
+            await context.send(f"Got unexpected exception: **{exc_repr}**", reference=context.message)
 
         return

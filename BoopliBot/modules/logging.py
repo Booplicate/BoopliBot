@@ -215,7 +215,7 @@ class _LogEmbedBuilder():
     @classmethod
     def _get_user_join_left_embed(cls, title: str, member: discord.Member) -> discord.Embed:
         """
-        Builds an embed for user join logs
+        Builds an embed for user join/leaving logs
         """
         return (
             cls._get_base_embed(title)
@@ -234,7 +234,7 @@ class _LogEmbedBuilder():
     @classmethod
     def get_user_left_embed(cls, member: discord.Member) -> discord.Embed:
         """
-        Builds an embed for user join logs
+        Builds an embed for user leaving logs
         """
         return cls._get_user_join_left_embed("User Has Left", member)
 
@@ -273,35 +273,35 @@ class _LogEmbedBuilder():
         )
 
     @classmethod
-    def get_warn_embed(cls, member: discord.Member, log_entry: Union[PartialAuditLogEntry, discord.AuditLogEntry]) -> discord.Embed:
+    def get_warn_embed(cls, member: discord.Member, log_entry: PartialAuditLogEntry) -> discord.Embed:
         """
         Builds an embed for warn event
         """
         return cls._get_mod_action_embed("User Has Been Warned", member, log_entry)
 
     @classmethod
-    def get_unwarn_embed(cls, member: discord.Member, log_entry: Union[PartialAuditLogEntry, discord.AuditLogEntry]) -> discord.Embed:
+    def get_unwarn_embed(cls, member: discord.Member, log_entry: PartialAuditLogEntry) -> discord.Embed:
         """
         Builds an embed for unwarn event
         """
         return cls._get_mod_action_embed("User Has Been Unwarned", member, log_entry)
 
     @classmethod
-    def get_kick_embed(cls, member: discord.Member, log_entry: Union[discord.AuditLogEntry]) -> discord.Embed:
+    def get_kick_embed(cls, member: discord.Member, log_entry: discord.AuditLogEntry) -> discord.Embed:
         """
         Builds an embed for kick event
         """
         return cls._get_mod_action_embed("User Has Been Kicked", member, log_entry)
 
     @classmethod
-    def get_ban_embed(cls, member: discord.Member, log_entry: Union[discord.AuditLogEntry]) -> discord.Embed:
+    def get_ban_embed(cls, member: discord.Member, log_entry: Optional[discord.AuditLogEntry]) -> discord.Embed:
         """
         Builds an embed for ban event
         """
         return cls._get_mod_action_embed("User Has Been Banned", member, log_entry)
 
     @classmethod
-    def get_unban_embed(cls, member: discord.Member, log_entry: Union[discord.AuditLogEntry]) -> discord.Embed:
+    def get_unban_embed(cls, member: discord.Member, log_entry: Optional[discord.AuditLogEntry]) -> discord.Embed:
         """
         Builds an embed for unban event
         """
@@ -461,7 +461,7 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
         await log_channel.send(embed=embed)
 
     @commands.Cog.listener(name="on_member_kick")
-    async def on_member_kick(self, guild: discord.Guild, member: discord.Member, log_entry: Optional[discord.AuditLogEntry] = None) -> None:
+    async def on_member_kick(self, guild: discord.Guild, member: discord.Member, log_entry: discord.AuditLogEntry) -> None:
         """
         Callback on user kick
         NOTE: custom event
@@ -470,7 +470,6 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
             guild - Guild object
             member - Member object
             log_entry - the audit log entry
-                (Default: None)
         """
         log_channel: Optional[int] = self.bot.guilds_configs[guild.id].log_channel
         log_channel: Optional[discord.TextChannel] = guild.get_channel(log_channel)
@@ -484,6 +483,7 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
     async def on_member_ban(self, guild: discord.Guild, member: discord.Member, log_entry: Optional[discord.AuditLogEntry] = None) -> None:
         """
         Callback on user ban
+        NOTE: custom event
 
         IN:
             guild - Guild object
@@ -503,6 +503,7 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
     async def on_member_unban(self, guild: discord.Guild, user: discord.User, log_entry: Optional[discord.AuditLogEntry] = None) -> None:
         """
         Callback on user unban
+        NOTE: custom event
 
         IN:
             guild - Guild object

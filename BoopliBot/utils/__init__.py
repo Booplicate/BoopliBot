@@ -48,6 +48,7 @@ def fmt_datetime(dt: datetime.datetime) -> str:
 
 def validate_prefix(prefix: str) -> None:
     """
+    Validates the given prefix, if the prefix is invalid, raises BadBotPrefix
     """
     prefix = prefix.strip()
 

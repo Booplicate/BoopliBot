@@ -93,7 +93,7 @@ class RootCommands(commands.Cog, name="Root"):
             color = EMB_COLOR_RED
         embed.color = color
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @commands.command(name="prefix")
     @is_owner_or_admin()
@@ -118,7 +118,7 @@ class RootCommands(commands.Cog, name="Root"):
         try:
             validate_prefix(new_prefix)
         except BadBotPrefix as e:
-            await ctx.send(str(e))
+            await ctx.send(str(e), reference=ctx.message)
             return
 
         async with sql_utils.NewAsyncSession() as sesh:
@@ -132,7 +132,7 @@ class RootCommands(commands.Cog, name="Root"):
             await sesh.commit()
             self.bot.guilds_configs[guild_id].prefix = new_prefix
 
-        await ctx.send(f"{response} `{new_prefix}`.")
+        await ctx.send(f"{response} `{new_prefix}`.", reference=ctx.message)
 
     @commands.command(name="activity", aliases=("status", "game"))
     @commands.is_owner()
@@ -165,7 +165,7 @@ class RootCommands(commands.Cog, name="Root"):
         Shutdowns the bot
         """
         self.bot.exit_code = bot.Bot.EXIT_CODE_QUIT
-        await ctx.channel.send(random.choice(RootCommands.GOODBYE_MESSAGES))
+        await ctx.channel.send(random.choice(RootCommands.GOODBYE_MESSAGES), reference=ctx.message)
         await self.bot.close()
 
     @commands.command(name="restart", aliases=("reload", "reboot"))
@@ -175,7 +175,7 @@ class RootCommands(commands.Cog, name="Root"):
         Restarts the bot
         """
         self.bot.exit_code = bot.Bot.EXIT_CODE_RESTART
-        await ctx.channel.send("Restarting...")
+        await ctx.channel.send("Restarting...", reference=ctx.message)
         await self.bot.close()
 
     @commands.group(name="module", aliases=("modules", "m"), invoke_without_command=True)
@@ -224,7 +224,7 @@ class RootCommands(commands.Cog, name="Root"):
         else:
             embed.add_field(name="No unloaded modules", value=EMPTY_EMBED_VALUE, inline=False)
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @cmd_module.command(name="load", aliases=("l",))
     @commands.is_owner()
@@ -305,7 +305,7 @@ class RootCommands(commands.Cog, name="Root"):
         else:
             embed.color = EMB_COLOR_ORANGE
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @cmd_module.command(name="unload", aliases=("u",))
     @commands.is_owner()
@@ -384,7 +384,7 @@ class RootCommands(commands.Cog, name="Root"):
         else:
             embed.color = EMB_COLOR_ORANGE
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @cmd_module.command(name="reload", aliases=("r",))
     @commands.is_owner()
@@ -459,19 +459,18 @@ class RootCommands(commands.Cog, name="Root"):
         else:
             embed.color = EMB_COLOR_ORANGE
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
-    @commands.command(name="shell")
+    @commands.command(name="shell", enabled=False)
     @commands.is_owner()
     async def cmd_shell(self, ctx: commands.Context, *, command: str) -> None:
         """
         Executes the given string in shell
+        FIXME: this command has been disabled
 
         IN:
             command - string to execute
         """
-        await ctx.send("This command was disabled")
-        return
         rv = ""
         try:
             async_proc = await asyncio.subprocess.create_subprocess_shell(
@@ -483,14 +482,13 @@ class RootCommands(commands.Cog, name="Root"):
             rv = data_tuple[0].decode("utf-8")
 
         except Exception as e:
-            rv = e
+            rv = repr(e)
 
         finally:
-            rv = str(rv)
             if len(rv) == 0 or rv.isspace():
-                rv = "''"
+                rv = '""'
 
-            await ctx.send(rv)
+            await ctx.send(rv, reference=ctx.message)
 
     @commands.command(name="eval")
     @commands.is_owner()
@@ -508,10 +506,10 @@ class RootCommands(commands.Cog, name="Root"):
                 rv = '""'
 
         except Exception as e:
-            rv = f"Failed to `eval`. Reason: `{e}`."
+            rv = f"Failed to `eval`. Reason: `{repr(e)}`."
 
         finally:
-            await ctx.send(rv)
+            await ctx.send(rv, reference=ctx.message)
 
     @commands.command(name="exec")
     @commands.is_owner()
@@ -526,10 +524,10 @@ class RootCommands(commands.Cog, name="Root"):
             exec(string)
 
         except Exception as e:
-            await ctx.send(f"Failed to `exec`. Reason: `{e}`.")
+            await ctx.send(f"Failed to `exec`. Reason: `{repr(e)}`.", reference=ctx.message)
 
         else:
-            await ctx.send("Success.")
+            await ctx.send("Success.", reference=ctx.message)
 
 
 def setup(bot: bot.Bot):
