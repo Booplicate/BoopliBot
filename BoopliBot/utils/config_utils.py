@@ -69,6 +69,12 @@ class Config:
         settings = str(self.__settings).replace(self.__settings["token"], "[...]")
         return f"{type(self).__name__}({settings})"
 
+    def is_dirty(self) -> bool:
+        """
+        Getter for the dirty attribute
+        """
+        return self.__dirty
+
     @staticmethod
     def __validate_settings(settings: dict) -> None:
         """
@@ -155,8 +161,18 @@ class Config:
             data - doct with config data
         """
         data = deepcopy(data)
-        self.__settings.update(data)
-        self.__dirty = True
+        settings = deepcopy(self.__settings)
+        settings.update(data)
+
+        try:
+            self.__validate_settings(settings)
+
+        except Exception as e:
+            raise e
+
+        else:
+            self.__settings = settings
+            self.__dirty = True
 
     def save(self) -> None:
         """
