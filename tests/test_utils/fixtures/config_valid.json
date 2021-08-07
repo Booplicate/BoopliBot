@@ -1,0 +1,10 @@
+{
+    "token": "test_token_goes_here",
+    "owner_id": 999999999999999999,
+    "def_prefix": "!",
+    "activity_text": "",
+    "description": "BoopliBot commands",
+    "case_insensitive": true,
+    "strip_after_prefix": true,
+    "shard_count": 1
+}
