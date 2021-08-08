@@ -113,18 +113,26 @@ class CustomCommand(Base):
 custom_command_table = CustomCommand.__table__
 
 
-def init() -> None:
+def init(should_log=True) -> None:
     """
     Inits sql dbs
+
+    IN:
+        should_log - whether or not we should log about successful init
     """
     metadata.create_all(engine)
-    logger.info("SQL datebases inited.")
+    if should_log:
+        logger.info("SQL datebases inited.")
 
-def deinit() -> None:
+def deinit(should_log=True) -> None:
     """
     Deinits the sql dbs
+
+    IN:
+        should_log - whether or not we should log about successful deinit
     """
-    logger.info("SQL datebases deinited.")
+    if should_log:
+        logger.info("SQL datebases deinited.")
 
 def NewSession(**kwargs) -> Session:
     """

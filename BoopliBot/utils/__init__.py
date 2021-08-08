@@ -20,12 +20,42 @@ from discord.ext import commands
 
 
 import BoopliBot
+from . import (
+    config_utils,
+    log_utils,
+    sql_utils
+)
 from ..consts import (
     TIME_FMT,
     FOLDER_MODULES,
     FOLDER_BOOPLIBOT
 )
 from ..errors import BadBotPrefix, MissingPermissionsAndNotOnSelf
+
+
+def init(should_log=True) -> None:
+    """
+    Inits sub-modules
+
+    IN:
+        should_log - whether or not we should log about successful init
+    """
+    # NOTE: ORDER IS IMPORTANT
+    log_utils.init(should_log=should_log)
+    config_utils.init(should_log=should_log)
+    sql_utils.init(should_log=should_log)
+
+def deinit(should_log=True) -> None:
+    """
+    Deinits sub-modules
+
+    IN:
+        should_log - whether or not we should log about successful deinit
+    """
+    # NOTE: ORDER IS IMPORTANT
+    sql_utils.deinit(should_log=should_log)
+    config_utils.deinit(should_log=should_log)
+    log_utils.deinit(should_log=should_log)
 
 
 def str_add_dash_space(string: str) -> str:

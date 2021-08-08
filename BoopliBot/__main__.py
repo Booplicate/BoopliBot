@@ -18,11 +18,11 @@ if __package__ is None:
 # print(sys.path)
 
 
-from . import bot
+from . import bot, utils
 from .utils import (
     log_utils,
     config_utils,
-    sql_utils
+    # sql_utils
 )
 
 logger: logging.Logger = None
@@ -36,9 +36,7 @@ def main() -> None:
     """
     global logger
 
-    log_utils.init()
-    config_utils.init()
-    sql_utils.init()
+    utils.init()
 
     # Windows needs a different event loop
     # if platform.system() == "Windows":
@@ -72,9 +70,7 @@ def main() -> None:
         else:
             raise Exception(f"UNKNOWN EXIT CODE: '{exit_code}'.")
 
-        sql_utils.deinit()
-        config_utils.deinit()
-        log_utils.deinit()
+        utils.deinit()
 
         sys.exit(exit_code)
 

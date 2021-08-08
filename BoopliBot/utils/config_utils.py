@@ -12,7 +12,7 @@ from typing import (
 )
 
 
-from . import validate_prefix
+import BoopliBot
 from ..errors import BadConfig, BadBotPrefix
 
 
@@ -107,7 +107,7 @@ class Config:
             raise BadConfig("Missing required config settings: {0}.".format(", ".join(req_settings)))
 
         try:
-            validate_prefix(settings["def_prefix"])
+            BoopliBot.utils.validate_prefix(settings["def_prefix"])
 
         except BadBotPrefix as e:
             raise BadConfig(f"Invalid default prefix: {e}") from None
@@ -190,18 +190,26 @@ class Config:
             self.save()
 
 
-def init():
+def init(should_log=True) -> None:
     """
     Inits bot config
+
+    IN:
+        should_log - whether or not we should log about successful init
     """
     global bot_config
 
     bot_config = Config(os.path.join(os.getcwd(), CONFIG_FILE))
-    logger.info("Config inited.")
+    if should_log:
+        logger.info("Config inited.")
 
-def deinit() -> None:
+def deinit(should_log=True) -> None:
     """
     Deinits bot config
+
+    IN:
+        should_log - whether or not we should log about successful deinit
     """
     bot_config.save_if_dirty()
-    logger.info("Config deinited.")
+    if should_log:
+        logger.info("Config deinited.")

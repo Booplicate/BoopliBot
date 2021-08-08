@@ -29,9 +29,12 @@ logger: logging.Logger = None
 log_listener: log_handlers.QueueListener = None
 
 
-def init() -> None:
+def init(should_log=True) -> None:
     """
     Inits logs
+
+    IN:
+        should_log - whether or not we should log about successful init
     """
     global logger, log_listener
 
@@ -94,12 +97,26 @@ def init() -> None:
     log_listener.start()
 
     logger = logging.getLogger(__name__)
-    logger.info("Logs inited.")
+    if should_log:
+        logger.info("Logs inited.")
 
-def deinit() -> None:
+def deinit(should_log=True) -> None:
     """
     Deinits logs
+
+    IN:
+        should_log - whether or not we should log about successful deinit
     """
-    logger.info("Logs deinited.")
+    if should_log:
+        logger.info("Logs deinited.")
     log_listener.stop()
+
+    for logger_name in ("BoopliBot", "discord"):
+        logger_ = logging.getLogger(logger_name)
+        for handler in logger_.handlers:
+            logger_.removeHandler(handler)
+
+        for filter_ in logger_.filters:
+            logger_.removeFilter(filter_)
+
     logging.shutdown()
