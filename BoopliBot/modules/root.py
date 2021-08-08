@@ -3,7 +3,7 @@ Module provides main set of commands. This module is required and must always be
 """
 
 import asyncio
-# import traceback
+import traceback
 import random
 # from typing import (
 #     List
@@ -505,14 +505,22 @@ class RootCommands(commands.Cog, name="Root"):
             string = string.strip(" `")
             string = re.sub(CODE_BLOCK_PATTERN, "", string, count=1).strip("\n ")
 
-            rv = str(eval(string))
+            rv = eval(string)
+
+            if isinstance(rv, str):
+                rv = f'"{rv}"'
+            else:
+                rv = str(rv)
+
             if not rv or rv.isspace():
                 rv = '""'
 
         except Exception as e:
-            rv = f"Failed to `eval`. Reason: `{repr(e)}`."
+            rv = repr(e)
+            # rv = f"Failed ❌\n```{traceback.format_exc()}```"
 
         finally:
+            rv = f"```python\n{rv}\n```"
             await ctx.send(rv, reference=ctx.message)
 
     @commands.command(name="exec")
@@ -531,10 +539,11 @@ class RootCommands(commands.Cog, name="Root"):
             exec(string)
 
         except Exception as e:
-            await ctx.send(f"Failed to `exec`. Reason: `{repr(e)}`.", reference=ctx.message)
+            await ctx.send(f"```python\n{repr(e)}\n```", reference=ctx.message)
+            # await ctx.send(f"Failed ❌\n```{traceback.format_exc()}```", reference=ctx.message)
 
         else:
-            await ctx.send("Success.", reference=ctx.message)
+            await ctx.send("✅", reference=ctx.message)
 
 
 def setup(bot: bot.Bot):
