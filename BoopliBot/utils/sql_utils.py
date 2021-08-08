@@ -3,6 +3,9 @@ Module that contains utils for sql dbs
 """
 
 import logging
+from typing import (
+    Optional
+)
 
 
 import sqlalchemy
@@ -29,15 +32,19 @@ from sqlalchemy.orm import (
 
 
 DB_FILE = "booplibot.db"
-engine: sqlalchemy.engine.Engine = create_engine(f"sqlite:///{DB_FILE}", echo=False, future=True)
-async_engine: sqlalchemy.ext.asyncio.AsyncEngine = create_async_engine(f"sqlite+aiosqlite:///{DB_FILE}", echo=False, future=True)
-SessionFactory = sessionmaker(engine)
-AsyncSessionFactory = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+ENGINE_URL = f"sqlite:///{DB_FILE}"
+ENGINE_URL_ASYNC = f"sqlite+aiosqlite:///{DB_FILE}"
+
+engine: sqlalchemy.engine.Engine = None
+async_engine: sqlalchemy.ext.asyncio.AsyncEngine = None
+SessionFactory: Session = None
+AsyncSessionFactory: AsyncSession = None
 
 Base = declarative_base()
 metadata: sqlalchemy.MetaData = Base.metadata
 
 logger = logging.getLogger(__name__)
+inited = False
 
 
 class GuildConfig(Base):
@@ -120,7 +127,17 @@ def init(should_log=True) -> None:
     IN:
         should_log - whether or not we should log about successful init
     """
+    global inited, engine, async_engine, SessionFactory, AsyncSessionFactory
+
+    engine = create_engine(ENGINE_URL, echo=False, future=True)
+    async_engine = create_async_engine(ENGINE_URL_ASYNC, echo=False, future=True)
+    SessionFactory = sessionmaker(engine, class_=Session, future=True)
+    AsyncSessionFactory = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False, future=True)
+
     metadata.create_all(engine)
+
+    inited = True
+
     if should_log:
         logger.info("SQL datebases inited.")
 
@@ -131,10 +148,19 @@ def deinit(should_log=True) -> None:
     IN:
         should_log - whether or not we should log about successful deinit
     """
+    global inited, engine, async_engine, SessionFactory, AsyncSessionFactory
+
+    inited = False
+
+    engine = None
+    async_engine = None
+    SessionFactory = None
+    AsyncSessionFactory = None
+
     if should_log:
         logger.info("SQL datebases deinited.")
 
-def NewSession(**kwargs) -> Session:
+def NewSession(**kwargs) -> Optional[Session]:
     """
     Creates a session with our db
 
@@ -145,12 +171,15 @@ def NewSession(**kwargs) -> Session:
                 expire_on_commit=True
 
     OUT:
-        Session object
+        Session object or None
     """
+    if not inited:
+        return None
+
     kwargs["future"] = True
     return SessionFactory(**kwargs)
 
-def NewAsyncSession(**kwargs) -> AsyncSession:
+def NewAsyncSession(**kwargs) -> Optional[AsyncSession]:
     """
     Creates a session with our db
 
@@ -161,8 +190,11 @@ def NewAsyncSession(**kwargs) -> AsyncSession:
                 expire_on_commit=False
 
     OUT:
-        AsyncSession object
+        AsyncSession object or None
     """
+    if not inited:
+        return None
+
     kwargs["future"] = True
     return AsyncSessionFactory(**kwargs)
 
