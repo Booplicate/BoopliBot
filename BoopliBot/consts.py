@@ -2,6 +2,8 @@
 This modules contains constants for BoopliBot
 """
 
+import re
+
 import discord
 
 
@@ -44,3 +46,6 @@ BOOPLIBOT_DEF_PREMISSIONS = discord.Permissions(
     manage_roles=True,
     manage_emojis=True
 )
+
+# Doesn't include ` or ```
+CODE_BLOCK_PATTERN = re.compile(r"^\s*(py|python)\s*\n\s*")

@@ -11,7 +11,7 @@ import random
 #     # Any,
 #     # Optional
 # )
-# import os
+import re
 
 
 import discord
@@ -33,7 +33,8 @@ from ..consts import (
     EMB_COLOR_GREEN,
     EMB_COLOR_ORANGE,
     EMB_COLOR_RED,
-    EMPTY_EMBED_VALUE
+    EMPTY_EMBED_VALUE,
+    CODE_BLOCK_PATTERN
 )
 from ..errors import (
     MissingRequiredSubCommand,
@@ -501,6 +502,9 @@ class RootCommands(commands.Cog, name="Root"):
         """
         rv = ""
         try:
+            string = string.strip(" `")
+            string = re.sub(CODE_BLOCK_PATTERN, "", string, count=1).strip("\n ")
+
             rv = str(eval(string))
             if not rv or rv.isspace():
                 rv = '""'
@@ -521,6 +525,9 @@ class RootCommands(commands.Cog, name="Root"):
             string - the string to exec
         """
         try:
+            string = string.strip(" `")
+            string = re.sub(CODE_BLOCK_PATTERN, "", string, count=1).strip("\n ")
+
             exec(string)
 
         except Exception as e:
