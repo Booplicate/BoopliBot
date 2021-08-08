@@ -11,6 +11,12 @@ from collections import Counter
 from BoopliBot.utils import log_utils
 
 
+def setUpModule() -> None:
+    pass
+
+def tearDownModule() -> None:
+    pass
+
 class LogsTest(unittest.TestCase):
     """
     Test case for config_utils.log_utils

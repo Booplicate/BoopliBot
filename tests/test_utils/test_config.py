@@ -10,6 +10,11 @@ from BoopliBot.utils import config_utils
 
 THIS_FOLDER = os.path.dirname(os.path.realpath(os.path.abspath(__file__)))
 
+def setUpModule() -> None:
+    pass
+
+def tearDownModule() -> None:
+    pass
 
 class ConfigTest(unittest.TestCase):
     """
