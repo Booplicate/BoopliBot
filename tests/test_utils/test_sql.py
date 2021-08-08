@@ -48,7 +48,7 @@ class SQLTest(unittest.TestCase):
     def tearDownClass(cls) -> None:
         sql_utils.deinit(should_log=False)
 
-    def test_guild_config_create(self) -> None:
+    def test_sql_guild_config_create(self) -> None:
         test_guild_id = 999999999
         test_prefix = "!"
 
@@ -76,7 +76,7 @@ class SQLTest(unittest.TestCase):
             deleted_guild = sesh.get(sql_utils.GuildConfig, test_guild_id)
             self.assertIsNone(deleted_guild)
 
-    def test_guild_config_update(self) -> None:
+    def test_sql_guild_config_update(self) -> None:
         test_guild_id = 999999999
         test_prefix = "!"
 
@@ -92,7 +92,7 @@ class SQLTest(unittest.TestCase):
             sesh.commit()
             self.assertEqual(guild.prefix, new_prefix)
 
-    def test_user_create(self) -> None:
+    def test_sql_user_create(self) -> None:
         test_guild_id = 999999999
         test_user_id = 555555555
 
@@ -119,7 +119,7 @@ class SQLTest(unittest.TestCase):
             deleted_user = sesh.get(sql_utils.User, (test_guild_id, test_user_id))
             self.assertIsNone(deleted_user)
 
-    def test_user_update(self) -> None:
+    def test_sql_user_update(self) -> None:
         test_guild_id = 999999999
         test_user_id = 555555555
 
@@ -136,7 +136,7 @@ class SQLTest(unittest.TestCase):
 
             self.assertEqual(user.total_bans, new_bans)
 
-    def test_update(self) -> None:
+    def test_sql_update(self) -> None:
         test_guild_id = 999999999
         test_user_id = 555555555
 

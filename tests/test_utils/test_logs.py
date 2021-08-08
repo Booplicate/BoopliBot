@@ -68,7 +68,7 @@ class LogsTest(unittest.TestCase):
         case_msg = "Case: queue messages should match emitted log messages"
         with patch.object(queue_handler, "emit") as mock_emit:
             for id_, test in enumerate(self.TEST_CASES, start=1):
-                with self.subTest():
+                with self.subTest(msg=case_msg):
                     level, msg = test
                     # Send msg
                     booplibot_logger.log(level, msg)
@@ -90,8 +90,8 @@ class LogsTest(unittest.TestCase):
             # First patch handlers so they don't actually emit
             for handler in listener_handlers:
                 p = patch.object(handler, "emit")
-                p.start()
                 patches.append(p)
+                p.start()
 
                 ev = threading.Event()
                 events_map[id(handler)] = ev
@@ -113,11 +113,11 @@ class LogsTest(unittest.TestCase):
                         ev.clear()
 
             # Run sub tests
-            msg = "Case: log count should be equal to mock call count"
+            case_msg = "Case: log count should be equal to mock call count"
             for handler in listener_handlers:
                 log_count = log_counter[id(handler)]
                 call_count = handler.emit.call_count
-                with self.subTest(msg=msg, level=handler.level, log_count=log_count, call_count=call_count):
+                with self.subTest(msg=case_msg, level=handler.level, log_count=log_count, call_count=call_count):
                     self.assertEqual(log_count, call_count)
 
         except Exception as e:
