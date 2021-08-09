@@ -79,7 +79,7 @@ def main() -> None:
         booplibot = bot.Bot(config)
 
         logger.log(log_utils.EXEC_INFO, "Starting BoopliBot.")
-        booplibot.run(config.token, bot=True, reconnect=True)
+        booplibot.run(config.token, reconnect=True)
 
     except Exception as e:
         logger.error("Got exception during the main loop.", exc_info=e)
