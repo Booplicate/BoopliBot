@@ -10,7 +10,7 @@ from discord.ext import commands
 
 
 import BoopliBot
-from .. import bot
+from ..bot import Bot
 from ..utils import (
     register_cog,
     is_mod_or_used_on_self,
@@ -40,7 +40,7 @@ class OtherCommands(commands.Cog, name="Other"):
         "`sudo` your mom."
     ]
 
-    def __init__(self, bot: bot.Bot):
+    def __init__(self, bot: Bot):
         """
         Constructor
 
@@ -200,10 +200,10 @@ class OtherCommands(commands.Cog, name="Other"):
         await ctx.send(result)
 
 
-def setup(bot: bot.Bot):
+def setup(bot: Bot):
     for cog in _cogs:
         bot.add_cog(cog(bot))
 
-def teardown(bot: bot.Bot):
+def teardown(bot: Bot):
     for cog in _cogs:
         bot.remove_cog(cog(bot))

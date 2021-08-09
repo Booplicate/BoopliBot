@@ -15,10 +15,8 @@ from discord.ext import commands
 
 
 import BoopliBot
-from .. import (
-    bot,
-    consts
-)
+from ..bot import Bot
+from .. import consts
 from ..utils import (
     register_cog,
     fmt_datetime
@@ -313,7 +311,7 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
     """
     Logger contains methods for chat logs handling
     """
-    def __init__(self, bot: bot.Bot):
+    def __init__(self, bot: Bot):
         """
         Constructor
 
@@ -520,10 +518,10 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
         await log_channel.send(embed=embed)
 
 
-def setup(bot: bot.Bot):
+def setup(bot: Bot):
     for cog in _cogs:
         bot.add_cog(cog(bot))
 
-def teardown(bot: bot.Bot):
+def teardown(bot: Bot):
     for cog in _cogs:
         bot.remove_cog(cog(bot))

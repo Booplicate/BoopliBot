@@ -13,7 +13,7 @@ from discord.ext import commands
 
 
 import BoopliBot
-from .. import bot
+from ..bot import Bot
 from ..utils import (
     register_cog,
     sql_utils
@@ -64,7 +64,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     """
     This collection provides commands for managementing server members
     """
-    def __init__(self, bot: bot.Bot):
+    def __init__(self, bot: Bot):
         """
         Constructor
 
@@ -291,10 +291,10 @@ class MemberCommands(commands.Cog, name="Administration"):
             await ctx.send(response_unbanned)
 
 
-def setup(bot: bot.Bot):
+def setup(bot: Bot):
     for cog in _cogs:
         bot.add_cog(cog(bot))
 
-def teardown(bot: bot.Bot):
+def teardown(bot: Bot):
     for cog in _cogs:
         bot.remove_cog(cog(bot))

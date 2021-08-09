@@ -17,7 +17,8 @@ if __package__ is None:
     sys.path.insert(0, os.path.dirname(os.path.dirname(path)))
 
 
-from . import bot, utils
+from .bot import Bot
+from . import utils
 from .utils import (
     log_utils,
     config_utils
@@ -76,7 +77,7 @@ def main() -> None:
     config = config_utils.bot_config
 
     try:
-        booplibot = bot.Bot(config)
+        booplibot = Bot(config)
 
         logger.log(log_utils.EXEC_INFO, "Starting BoopliBot.")
         booplibot.run(config.token, reconnect=True)
@@ -88,19 +89,19 @@ def main() -> None:
     finally:
         exit_code = booplibot.exit_code
 
-        if exit_code == bot.Bot.EXIT_CODE_QUIT:
+        if exit_code == Bot.EXIT_CODE_QUIT:
             logger.log(log_utils.EXEC_INFO, "Shutting down BoopliBot.")
 
-        elif exit_code == bot.Bot.EXIT_CODE_CRASH:
+        elif exit_code == Bot.EXIT_CODE_CRASH:
             logger.log(log_utils.EXEC_INFO, "Restarting BoopliBot (after crash).")
 
-        elif exit_code == bot.Bot.EXIT_CODE_RESTART:
+        elif exit_code == Bot.EXIT_CODE_RESTART:
             logger.log(log_utils.EXEC_INFO, "Restarting BoopliBot (planned).")
 
         else:
             # raise Exception(f"UNKNOWN EXIT CODE: '{exit_code}'.")
             logger.error(f"Unknown exit code '{exit_code}'. Shutting down BoopliBot.")
-            exit_code = bot.Bot.EXIT_CODE_QUIT
+            exit_code = Bot.EXIT_CODE_QUIT
 
         sys.exit(exit_code)
 
