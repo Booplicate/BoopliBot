@@ -38,7 +38,6 @@ class Bot(commands.AutoShardedBot):
     Main class representing our discord bot
     """
     DEF_ACTIVITY = discord.Game(name=BoopliBot.__version__)
-    # DEF_INTENTS = discord.Intents.all()
     DEF_INTENTS = discord.Intents(
         bans=True,
         dm_messages=False,
@@ -56,7 +55,12 @@ class Bot(commands.AutoShardedBot):
         voice_states=False,
         webhooks=False
     )
-    DEF_MENTIONS = discord.AllowedMentions(everyone=True, users=True, roles=True, replied_user=False)
+    DEF_MENTIONS = discord.AllowedMentions(
+        everyone=True,
+        users=True,
+        roles=True,
+        replied_user=False
+    )
 
     # We can use 64-113 and 0
     EXIT_CODE_QUIT = 0
@@ -181,7 +185,9 @@ class Bot(commands.AutoShardedBot):
             if missing_guilds_id:
                 # First, we log it
                 missing_guilds_fmt = ", ".join(map(str, missing_guilds_id))
-                self.logger.warning(f"Some guilds are missing from the datebase, adding them:\n    {missing_guilds_fmt}.")
+                self.logger.warning(
+                    f"Some guilds are missing from the datebase, adding them:\n    {missing_guilds_fmt}."
+                )
                 # Now fix it
                 prefix = self.def_prefix
                 # sesh.bulk_insert_mappings(
