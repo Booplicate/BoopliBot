@@ -7,6 +7,7 @@ import sys
 import json
 import logging
 import datetime
+import re
 from typing import (
     Dict,
     List,
@@ -28,7 +29,8 @@ from . import (
 from ..consts import (
     TIME_FMT,
     FOLDER_MODULES,
-    FOLDER_BOOPLIBOT
+    FOLDER_BOOPLIBOT,
+    CODE_BLOCK_PATTERN
 )
 from ..errors import BadBotPrefix, MissingPermissionsAndNotOnSelf
 
@@ -63,6 +65,23 @@ def str_add_dash_space(string: str) -> str:
     Formats a string by adding a dash and a space
     """
     return f"- {string}"
+
+def to_code_block(string: str) -> str:
+    """
+    Formats a string into a python code block
+    """
+    return f"```py\n{string}```"
+
+def from_code_block(string: str) -> str:
+    """
+    Gets a pure string from a python code block
+    """
+    return re.sub(
+        CODE_BLOCK_PATTERN,
+        "",
+        string.strip(" `"),
+        count=1
+    ).strip("\n ")
 
 def fmt_datetime(dt: datetime.datetime) -> str:
     """

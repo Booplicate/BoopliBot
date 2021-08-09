@@ -12,6 +12,7 @@ import random
 #     # Optional
 # )
 import re
+import io
 
 
 import discord
@@ -19,10 +20,12 @@ from discord.ext import commands
 
 
 import BoopliBot
-from .. import bot
+from ..bot import Bot
 from ..utils import (
     FOLDER_MODULES,
     str_add_dash_space,
+    to_code_block,
+    from_code_block,
     retrieve_modules,
     register_cog,
     is_owner_or_admin,
@@ -34,7 +37,7 @@ from ..consts import (
     EMB_COLOR_ORANGE,
     EMB_COLOR_RED,
     EMPTY_EMBED_VALUE,
-    CODE_BLOCK_PATTERN
+    ZERO_WIDTH_CHAR
 )
 from ..errors import (
     MissingRequiredSubCommand,
@@ -65,7 +68,7 @@ class RootCommands(commands.Cog, name="Root"):
         "`I'll be back`"
     )
 
-    def __init__(self, bot: bot.Bot):
+    def __init__(self, bot: Bot):
         """
         Constructor
 
@@ -150,7 +153,7 @@ class RootCommands(commands.Cog, name="Root"):
             self.bot.config.activity_text = string
 
         else:
-            activity = bot.Bot.DEF_ACTIVITY
+            activity = Bot.DEF_ACTIVITY
             self.bot.config.activity_text = ""
 
         # TODO: replace run_in_executor with asyncio.to_thread
@@ -165,7 +168,7 @@ class RootCommands(commands.Cog, name="Root"):
         """
         Shutdowns the bot
         """
-        self.bot.exit_code = bot.Bot.EXIT_CODE_QUIT
+        self.bot.exit_code = Bot.EXIT_CODE_QUIT
         await ctx.channel.send(random.choice(RootCommands.GOODBYE_MESSAGES), reference=ctx.message)
         await self.bot.close()
 
@@ -175,7 +178,7 @@ class RootCommands(commands.Cog, name="Root"):
         """
         Restarts the bot
         """
-        self.bot.exit_code = bot.Bot.EXIT_CODE_RESTART
+        self.bot.exit_code = Bot.EXIT_CODE_RESTART
         await ctx.channel.send("Restarting...", reference=ctx.message)
         await self.bot.close()
 
@@ -500,56 +503,73 @@ class RootCommands(commands.Cog, name="Root"):
         IN:
             string - the string to eval
         """
-        rv = ""
+        string = from_code_block(string)
         try:
-            string = string.strip(" `")
-            string = re.sub(CODE_BLOCK_PATTERN, "", string, count=1).strip("\n ")
+            output = eval(string)
 
-            rv = eval(string)
-
-            if isinstance(rv, str):
-                rv = f'"{rv}"'
+            if isinstance(output, str):
+                output = f'"{output}"'
             else:
-                rv = str(rv)
+                output = str(output)
 
-            if not rv or rv.isspace():
-                rv = '""'
+            if not output:
+                output = ZERO_WIDTH_CHAR
 
         except Exception as e:
-            rv = repr(e)
-            # rv = f"Failed ❌\n```{traceback.format_exc()}```"
+            status = "Failure❌"
+            output = repr(e)
+            # traceback.format_exc()
+
+        else:
+            status = "Success✅"
 
         finally:
-            rv = f"```python\n{rv}\n```"
-            await ctx.send(rv, reference=ctx.message)
+            msg = f"{status}\n{to_code_block(output)}"
+            await ctx.send(msg, reference=ctx.message)
 
     @commands.command(name="exec")
     @commands.is_owner()
     async def cmd_exec(self, ctx: commands.Context, *, string: str) -> None:
         """
         Execs the given string
+        NOTE: internally defines a buffer for redirecting stdout
 
         IN:
             string - the string to exec
         """
-        try:
-            string = string.strip(" `")
-            string = re.sub(CODE_BLOCK_PATTERN, "", string, count=1).strip("\n ")
+        from builtins import print
+        from functools import partial
 
+        buffer = io.StringIO()
+        print = partial(print, file=buffer)
+
+        string = from_code_block(string)
+        try:
             exec(string)
 
         except Exception as e:
-            await ctx.send(f"```python\n{repr(e)}\n```", reference=ctx.message)
-            # await ctx.send(f"Failed ❌\n```{traceback.format_exc()}```", reference=ctx.message)
+            status = "Failure❌"
+            output = repr(e)
+            # traceback.format_exc()
 
         else:
-            await ctx.send("✅", reference=ctx.message)
+            status = "Success✅"
+            output = buffer.getvalue().strip("\n")
+
+        finally:
+            buffer.close()
+            msg = "{status}{newline}{output}".format(
+                status=status,
+                newline="\n" if output else "",
+                output=to_code_block(output) if output else ""
+            )
+            await ctx.send(msg, reference=ctx.message)
 
 
-def setup(bot: bot.Bot):
+def setup(bot: Bot):
     for cog in _cogs:
         bot.add_cog(cog(bot))
 
-def teardown(bot: bot.Bot):
+def teardown(bot: Bot):
     for cog in _cogs:
         bot.remove_cog(cog(bot))
