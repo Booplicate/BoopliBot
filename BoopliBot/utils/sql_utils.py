@@ -18,6 +18,7 @@ from sqlalchemy import (
     select,
     insert,
     update,
+    delete,
     Column,
     ForeignKey,
     Integer,

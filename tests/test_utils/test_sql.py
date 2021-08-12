@@ -34,8 +34,18 @@ class SQLTest(unittest.TestCase):
     """
     Test case for config_utils.sql_utils
     """
+    TEST_GUILD_ID = 626871007185207297
+    TEST_PREFIX = "!"
+    TEST_USER_ID = 647602717296164864
+
     def setUp(self) -> None:
         sql_utils.metadata.create_all(sql_utils.engine)
+
+        with sql_utils.NewSession() as sesh:
+            test_user = sql_utils.User(guild_id=self.TEST_GUILD_ID, user_id=self.TEST_USER_ID)
+            test_guild = sql_utils.GuildConfig(guild_id=self.TEST_GUILD_ID, prefix=self.TEST_PREFIX)
+            sesh.add_all((test_user, test_guild))
+            sesh.commit()
 
     def tearDown(self) -> None:
         sql_utils.metadata.drop_all(sql_utils.engine)
@@ -49,18 +59,19 @@ class SQLTest(unittest.TestCase):
         sql_utils.deinit(should_log=False)
 
     def test_sql_guild_config_create(self) -> None:
-        test_guild_id = 999999999
-        test_prefix = "!"
-
         with sql_utils.NewSession() as sesh:
+            test_guild_id = self.TEST_GUILD_ID + 5
+
             nonexisting_guild = sesh.get(sql_utils.GuildConfig, test_guild_id)
 
             self.assertIsNone(nonexisting_guild)
 
-            new_guild = sql_utils.GuildConfig(guild_id=test_guild_id, prefix=test_prefix)
+            new_guild = sql_utils.GuildConfig(guild_id=test_guild_id, prefix=self.TEST_PREFIX)
             sesh.add(new_guild)
             sesh.commit()
             existing_guild = sesh.get(sql_utils.GuildConfig, test_guild_id)
+
+            self.assertEqual(new_guild, existing_guild)
 
             # This should be disabled by default
             self.assertFalse(new_guild.enable_cc)
@@ -69,34 +80,33 @@ class SQLTest(unittest.TestCase):
             self.assertIsNone(new_guild.welcome_channel)
             self.assertIsNone(new_guild.system_channel)
 
-            self.assertEqual(new_guild, existing_guild)
+    def test_sql_guild_config_delete(self) -> None:
+        with sql_utils.NewSession() as sesh:
+            test_guild = sesh.get(sql_utils.GuildConfig, self.TEST_GUILD_ID)
+            # Obv this cannot be None
+            self.assertIsNotNone(test_guild)
 
-            sesh.delete(existing_guild)
+            sesh.delete(test_guild)
             sesh.commit()
-            deleted_guild = sesh.get(sql_utils.GuildConfig, test_guild_id)
+
+            deleted_guild = sesh.get(sql_utils.GuildConfig, self.TEST_GUILD_ID)
             self.assertIsNone(deleted_guild)
 
     def test_sql_guild_config_update(self) -> None:
-        test_guild_id = 999999999
-        test_prefix = "!"
-
         with sql_utils.NewSession() as sesh:
-            guild = sql_utils.GuildConfig(guild_id=test_guild_id, prefix=test_prefix)
-            sesh.add(guild)
-            sesh.commit()
+            test_guild = sesh.get(sql_utils.GuildConfig, self.TEST_GUILD_ID)
 
-            self.assertEqual(guild.prefix, test_prefix)
+            self.assertEqual(test_guild.prefix, self.TEST_PREFIX)
 
             new_prefix = "$"
-            guild.prefix = new_prefix
+            test_guild.prefix = new_prefix
             sesh.commit()
-            self.assertEqual(guild.prefix, new_prefix)
+            self.assertEqual(test_guild.prefix, new_prefix)
 
     def test_sql_user_create(self) -> None:
-        test_guild_id = 999999999
-        test_user_id = 555555555
-
         with sql_utils.NewSession() as sesh:
+            test_guild_id = self.TEST_GUILD_ID - 5
+            test_user_id = self.TEST_USER_ID + 5
             nonexisting_user = sesh.get(sql_utils.User, (test_guild_id, test_user_id))
 
             self.assertIsNone(nonexisting_user)
@@ -114,37 +124,37 @@ class SQLTest(unittest.TestCase):
 
             self.assertEqual(new_user, existing_user)
 
-            sesh.delete(existing_user)
+    def test_sql_user_delete(self) -> None:
+        with sql_utils.NewSession() as sesh:
+            test_user = sesh.get(sql_utils.User, (self.TEST_GUILD_ID, self.TEST_USER_ID))
+            self.assertIsNotNone(test_user)
+
+            sesh.delete(test_user)
             sesh.commit()
-            deleted_user = sesh.get(sql_utils.User, (test_guild_id, test_user_id))
+
+            deleted_user = sesh.get(sql_utils.User, (self.TEST_GUILD_ID, self.TEST_USER_ID))
             self.assertIsNone(deleted_user)
 
     def test_sql_user_update(self) -> None:
-        test_guild_id = 999999999
-        test_user_id = 555555555
-
         with sql_utils.NewSession() as sesh:
-            user = sql_utils.User(guild_id=test_guild_id, user_id=test_user_id)
-            sesh.add(user)
-            sesh.commit()
+            test_user = sesh.get(sql_utils.User, (self.TEST_GUILD_ID, self.TEST_USER_ID))
 
-            self.assertEqual(user.total_bans, 0)
+            self.assertEqual(test_user.total_bans, 0)
 
             new_bans = 5
-            user.total_bans = new_bans
+            test_user.total_bans = new_bans
             sesh.commit()
 
-            self.assertEqual(user.total_bans, new_bans)
+            self.assertEqual(test_user.total_bans, new_bans)
 
-    def test_sql_update(self) -> None:
-        test_guild_id = 999999999
-        test_user_id = 555555555
-
+    def test_sql_bulk_update(self) -> None:
         with sql_utils.NewSession() as sesh:
-            user_one = sql_utils.User(guild_id=test_guild_id, user_id=test_user_id)
-            user_two = sql_utils.User(guild_id=test_guild_id, user_id=test_user_id-5)
-            user_three = sql_utils.User(guild_id=test_guild_id, user_id=test_user_id-10)
-            user_four = sql_utils.User(guild_id=test_guild_id-5, user_id=test_user_id-15)
+            user_one = sql_utils.User(guild_id=self.TEST_GUILD_ID, user_id=self.TEST_USER_ID - 5)
+            user_two = sql_utils.User(guild_id=self.TEST_GUILD_ID, user_id=self.TEST_USER_ID - 10)
+            user_three = sql_utils.User(guild_id=self.TEST_GUILD_ID, user_id=self.TEST_USER_ID - 15)
+            # This one has different guild_id
+            user_four = sql_utils.User(guild_id=self.TEST_GUILD_ID - 5, user_id=self.TEST_USER_ID - 20)
+
             sesh.add_all(
                 (user_one, user_two, user_three, user_four)
             )
@@ -155,7 +165,7 @@ class SQLTest(unittest.TestCase):
             stmt = (
                 sql_utils.update(sql_utils.User)
                 .values(current_warns=new_warns)
-                .where(sql_utils.User.guild_id == test_guild_id)
+                .where(sql_utils.User.guild_id == self.TEST_GUILD_ID)
             )
             sesh.execute(stmt)
             sesh.commit()
@@ -183,3 +193,32 @@ class SQLTest(unittest.TestCase):
 
             self.assertEqual(user_two.current_warns, new_warns)
             self.assertEqual(user_four.current_warns, new_warns)
+
+    def test_sql_bulk_select(self) -> None:
+        with sql_utils.NewSession() as sesh:
+            stmt = (
+                sql_utils.select(sql_utils.User)
+                .where(sql_utils.User.user_id == self.TEST_USER_ID and sql_utils.User.guild_id == self.TEST_GUILD_ID)
+                .limit(5)
+                .offset(0)
+            )
+            rv = sesh.execute(stmt).scalars().all()
+            self.assertEqual(len(rv), 1)
+            user: sql_utils.User = rv[0]
+            self.assertEqual(user.user_id, self.TEST_USER_ID)
+            self.assertEqual(user.guild_id, self.TEST_GUILD_ID)
+
+    def test_sql_bulk_delete(self) -> None:
+        with sql_utils.NewSession() as sesh:
+            test_user = sesh.get(sql_utils.User, (self.TEST_GUILD_ID, self.TEST_USER_ID))
+            self.assertIsNotNone(test_user)
+
+            stmt = (
+                sql_utils.delete(sql_utils.User)
+                .where(sql_utils.User.guild_id == self.TEST_GUILD_ID)
+            )
+            sesh.execute(stmt)
+            sesh.commit()
+            test_user = sesh.get(sql_utils.User, (self.TEST_GUILD_ID, self.TEST_USER_ID))
+
+            self.assertIsNone(test_user)

@@ -11,12 +11,6 @@ from collections import Counter
 from BoopliBot.utils import log_utils
 
 
-def setUpModule() -> None:
-    pass
-
-def tearDownModule() -> None:
-    pass
-
 class LogsTest(unittest.TestCase):
     """
     Test case for config_utils.log_utils
@@ -33,14 +27,6 @@ class LogsTest(unittest.TestCase):
 
     def tearDown(self) -> None:
         log_utils.deinit(should_log=False)
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        pass
-
-    @classmethod
-    def tearDownClass(cls) -> None:
-        pass
 
     def test_logging_basic(self) -> None:
         booplibot_logger = logging.getLogger("BoopliBot")
@@ -65,7 +51,7 @@ class LogsTest(unittest.TestCase):
         # Verify it's the handler we're expecting it to be
         self.assertIsInstance(queue_handler, logging.handlers.QueueHandler)
 
-        case_msg = "Case: queue messages should match emitted log messages"
+        case_msg = "Case: messages in the queue should match emitted log messages"
         with patch.object(queue_handler, "emit") as mock_emit:
             for id_, test in enumerate(self.TEST_CASES, start=1):
                 with self.subTest(msg=case_msg):
@@ -124,6 +110,6 @@ class LogsTest(unittest.TestCase):
             raise
 
         finally:
-            # Always remove patches at the end
+            # Always remove patches in the end
             for p in patches:
                 p.stop()
