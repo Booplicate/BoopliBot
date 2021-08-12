@@ -18,6 +18,7 @@ from typing import (
 
 import discord
 from discord.ext import commands
+from discord.utils import utcnow
 
 
 import BoopliBot
@@ -150,7 +151,7 @@ async def get_audit_log_for_action(guild: discord.Guild, action: discord.AuditLo
     OUT:
         AuditLogEntry or None
     """
-    now = datetime.datetime.utcnow()
+    now = utcnow()
     after = now - datetime.timedelta(minutes=15)
 
     log_iter = guild.audit_logs(

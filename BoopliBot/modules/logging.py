@@ -2,7 +2,7 @@
 Module contains cog for chat logs.
 """
 
-import datetime
+# import datetime
 from textwrap import shorten as shorten_text
 from typing import (
     Tuple,
@@ -12,6 +12,7 @@ from typing import (
 
 import discord
 from discord.ext import commands
+from discord.utils import utcnow
 
 
 import BoopliBot
@@ -72,7 +73,7 @@ class _LogEmbedBuilder():
         """
         return (
             discord.Embed(title=f"Log: {title}")
-            .set_footer(text=fmt_datetime(datetime.datetime.utcnow()))
+            .set_footer(text=fmt_datetime(utcnow()))
         )
 
     @classmethod
