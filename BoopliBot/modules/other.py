@@ -65,7 +65,7 @@ class OtherCommands(commands.Cog, name="Other"):
 
         embed = (
             discord.Embed(title="About me")
-            .set_thumbnail(url=info.icon_url)
+            .set_thumbnail(url=info.icon.url)
             .add_field(
                 name="Name:",
                 value=info.name,
@@ -120,7 +120,7 @@ class OtherCommands(commands.Cog, name="Other"):
 
         username = member.name
         discriminator = member.discriminator
-        ava_url = member.avatar_url
+        ava_url = member.avatar.url
         created_at = fmt_datetime(member.created_at)
 
         # If it's not a member, then we can't get the complete info
@@ -170,7 +170,7 @@ class OtherCommands(commands.Cog, name="Other"):
         IN:
             member - the member whos avatar to return
         """
-        await ctx.send(member.avatar_url)
+        await ctx.send(member.avatar.url)
 
     @commands.command(name="coin", aliases=("flip", "toss"))
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)

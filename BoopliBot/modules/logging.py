@@ -89,7 +89,7 @@ class _LogEmbedBuilder():
         channel = message.channel
         return (
             cls._get_base_embed(title)
-            .set_thumbnail(url=member.avatar_url)
+            .set_thumbnail(url=member.avatar.url)
             .add_field(name="User:", value=member.mention, inline=False)
             .add_field(name="User ID:", value=f"{member.id}", inline=False)
             # .add_field(name=consts.EMPTY_EMBED_VALUE, value=consts.EMPTY_EMBED_VALUE, inline=False)
@@ -218,7 +218,7 @@ class _LogEmbedBuilder():
         """
         return (
             cls._get_base_embed(title)
-            .set_thumbnail(url=member.avatar_url)
+            .set_thumbnail(url=member.avatar.url)
             .add_field(name="User:", value=member.mention, inline=False)
             .add_field(name="User ID:", value=f"{member.id}", inline=False)
         )
@@ -265,7 +265,7 @@ class _LogEmbedBuilder():
 
         return (
             cls._get_base_embed(title)
-            .set_thumbnail(url=member.avatar_url)
+            .set_thumbnail(url=member.avatar.url)
             .add_field(name="User:", value=member.mention, inline=False)
             .add_field(name="By:", value=moderator, inline=False)
             .add_field(name="With Reason:", value=reason, inline=False)
