@@ -190,7 +190,7 @@ class MemberCommands(commands.Cog, name="Administration"):
         if ctx.author != member and ctx.author.top_role <= member.top_role:
             raise TooLowInHierarchy()
 
-        if ctx.guild.me != member and ctx.guild.me.top_role <= member.top_role:
+        if ctx.guild.me.top_role <= member.top_role:
             raise BotTooLowInHierarchy()
 
         if reason:
@@ -228,7 +228,7 @@ class MemberCommands(commands.Cog, name="Administration"):
             if ctx.author != member and ctx.author.top_role <= member.top_role:
                 raise TooLowInHierarchy()
 
-            if ctx.guild.me != member and ctx.guild.me.top_role <= member.top_role:
+            if ctx.guild.me.top_role <= member.top_role:
                 raise BotTooLowInHierarchy()
 
         if reason:
