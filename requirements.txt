@@ -1,0 +1,2 @@
+git+git://github.com/Rapptz/discord.py@master#egg=discord.py
+sqlalchemy>=1.4
