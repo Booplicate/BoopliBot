@@ -149,6 +149,10 @@ class Bot(commands.AutoShardedBot):
             guild_prefix = bot.guilds_configs[guild.id].prefix or bot.def_prefix
             prefixes.add(guild_prefix)
 
+        else:
+            # For DMs add def prefix
+            prefixes.add(bot.def_prefix)
+
         return prefixes
 
     async def validate_db(self) -> None:
