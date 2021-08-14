@@ -215,9 +215,37 @@ def bypass_for_mod_cooldown(rate: int, per: float) -> Callable[[discord.Message]
         callable
     """
     def cooldown(message: discord.Message) -> Optional[commands.Cooldown]:
-        if not message.author.guild_permissions.kick_members:
-            return commands.Cooldown(rate, per)
+        if message.author.guild_permissions.kick_members:
+            return None
 
-        return None
+        return commands.Cooldown(rate, per)
+
+    return cooldown
+
+def bypass_for_owner_cooldown(rate: int, per: float) -> Callable[[discord.Message], Optional[commands.Cooldown]]:
+    """
+    Intended to be used with commands.dynamic_cooldown
+    Returns a function that returns either a cooldown, or None if the user is owner
+
+    IN:
+        rate - the number of times this command can be used
+        per - the cooldown itself
+
+    OUT:
+        callable
+
+    ASSUMES:
+        BoopliBot.bot.Bot._instance is not None and the reference is actual
+    """
+    def cooldown(message: discord.Message) -> Optional[commands.Cooldown]:
+        author_id = message.author.id
+        bot = BoopliBot.bot.Bot._instance()
+        if (
+            (bot.owner_id and author_id == bot.owner_id)
+            or (bot.owner_ids and author_id in bot.owner_ids)
+        ):
+            return None
+
+        return commands.Cooldown(rate, per)
 
     return cooldown
