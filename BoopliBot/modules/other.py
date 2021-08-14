@@ -3,6 +3,9 @@ Module contains set of ungrouped commands.
 """
 
 import random
+from typing import (
+    Optional
+)
 
 
 import discord
@@ -51,7 +54,7 @@ class OtherCommands(commands.Cog, name="Other"):
 
     @commands.command(name="sudo", hidden=True)
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)
-    async def cmd_sudo(self, ctx: commands.Context, command: str = None) -> None:
+    async def cmd_sudo(self, ctx: commands.Context, command: Optional[str] = None) -> None:
         await ctx.send(random.choice(OtherCommands.SUDO_CMD_RESPONSES))
 
     @commands.command(name="about")

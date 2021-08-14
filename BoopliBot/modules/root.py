@@ -5,12 +5,9 @@ Module provides main set of commands. This module is required and must always be
 import asyncio
 import traceback
 import random
-# from typing import (
-#     List
-#     # Union,
-#     # Any,
-#     # Optional
-# )
+from typing import (
+    Optional
+)
 import re
 import io
 
@@ -102,7 +99,7 @@ class RootCommands(commands.Cog, name="Root"):
     @commands.command(name="prefix")
     @is_owner_or_admin()
     @commands.guild_only()
-    async def cmd_prefix(self, ctx: commands.Context, new_prefix: str = None) -> None:
+    async def cmd_prefix(self, ctx: commands.Context, new_prefix: Optional[str] = None) -> None:
         """
         Sets a new prefix for commands on this server
 
@@ -140,7 +137,7 @@ class RootCommands(commands.Cog, name="Root"):
 
     @commands.command(name="activity", aliases=("status", "game"))
     @commands.is_owner()
-    async def cmd_activity(self, ctx: commands.Context, *, string: str = None) -> None:
+    async def cmd_activity(self, ctx: commands.Context, *, string: Optional[str] = None) -> None:
         """
         Sets a new activity
 

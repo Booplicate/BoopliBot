@@ -2,10 +2,9 @@
 Module provides set of commands to work with guild members.
 """
 
-# from typing import (
-#     Union,
-#     Any
-# )
+from typing import (
+    Optional
+)
 
 
 import discord
@@ -76,7 +75,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     @commands.command(name="warn")
     @commands.has_guild_permissions(kick_members=True)
     @commands.guild_only()
-    async def cmd_warn(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: str = None) -> None:
+    async def cmd_warn(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: Optional[str] = None) -> None:
         """
         Gives a warning to a server member/discord user
 
@@ -125,7 +124,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     @commands.command(name="unwarn")
     @commands.has_guild_permissions(kick_members=True)
     @commands.guild_only()
-    async def cmd_unwarn(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: str = None) -> None:
+    async def cmd_unwarn(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: Optional[str] = None) -> None:
         """
         Removes a warning from a server member/discord user
 
@@ -178,7 +177,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     @commands.has_guild_permissions(kick_members=True)
     @commands.bot_has_guild_permissions(kick_members=True)
     @commands.guild_only()
-    async def cmd_kick(self, ctx: commands.Context, member: discord.Member, *, reason: str = None) -> None:
+    async def cmd_kick(self, ctx: commands.Context, member: discord.Member, *, reason: Optional[str] = None) -> None:
         """
         Kicks a server member
 
@@ -216,7 +215,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.guild_only()
-    async def cmd_ban(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: str = None) -> None:
+    async def cmd_ban(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: Optional[str] = None) -> None:
         """
         Bans a server member/discord user
 
@@ -255,7 +254,7 @@ class MemberCommands(commands.Cog, name="Administration"):
     @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.guild_only()
-    async def cmd_unban(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: str = None) -> None:
+    async def cmd_unban(self, ctx: commands.Context, member: MemberOrUserConverter, *, reason: Optional[str] = None) -> None:
         """
         Unbans a server member/discord user
 
