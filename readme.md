@@ -1,5 +1,6 @@
 # [BoopliBot](https://github.com/Booplicate/BoopliBot) - a bot that boops
 
+[![CI](https://github.com/Booplicate/BoopliBot/actions/workflows/tests.yml/badge.svg?branch=master)](https://github.com/Booplicate/BoopliBot/actions/workflows/tests.yml)
 <!-- ![boop](boop.png) -->
 
 ### [Invite now](https://discord.com/oauth2/authorize?client_id=647602717296164864&scope=bot&permissions=1544023238)
