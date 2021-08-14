@@ -2,7 +2,7 @@
 This modules contains constants extra classes.
 """
 
-from collections import namedtuple
+# from collections import namedtuple
 from collections.abc import (
     Hashable,
     Iterator,

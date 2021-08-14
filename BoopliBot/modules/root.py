@@ -537,11 +537,13 @@ class RootCommands(commands.Cog, name="Root"):
         IN:
             string - the string to exec
         """
-        from builtins import print
+        from builtins import print as _print
+        from pprint import pprint as _pprint
         from functools import partial
 
         buffer = io.StringIO()
-        print = partial(print, file=buffer)
+        print = partial(_print, file=buffer)
+        pprint = partial(_pprint, stream=buffer, indent=1, depth=3, width=40, compact=True)
 
         string = from_code_block(string)
         try:
