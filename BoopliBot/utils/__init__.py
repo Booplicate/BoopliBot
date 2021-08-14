@@ -8,11 +8,15 @@ import json
 import logging
 import datetime
 import re
+from collections.abc import (
+    Callable
+)
 from typing import (
     Dict,
     List,
     Union,
-    Any
+    Any,
+    Optional
 )
 
 
@@ -197,3 +201,23 @@ def is_mod_or_used_on_self(invoked_by: discord.Member, used_on: Union[discord.Me
     """
     if invoked_by != used_on and not invoked_by.guild_permissions.kick_members:
         raise MissingPermissionsAndNotOnSelf()
+
+def bypass_for_mod_cooldown(rate: int, per: float) -> Callable[[discord.Message], Optional[commands.Cooldown]]:
+    """
+    Intended to be used with commands.dynamic_cooldown
+    Returns a function that returns either a cooldown, or None if the user is a mod
+
+    IN:
+        rate - the number of times this command can be used
+        per - the cooldown itself
+
+    OUT:
+        callable
+    """
+    def cooldown(message: discord.Message) -> Optional[commands.Cooldown]:
+        if not message.author.guild_permissions.kick_members:
+            return commands.Cooldown(rate, per)
+
+        return None
+
+    return cooldown

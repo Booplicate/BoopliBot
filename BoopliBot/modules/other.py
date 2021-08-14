@@ -17,6 +17,7 @@ from ..bot import Bot
 from ..utils import (
     register_cog,
     is_mod_or_used_on_self,
+    bypass_for_mod_cooldown,
     fmt_datetime,
     sql_utils
 )
@@ -96,7 +97,7 @@ class OtherCommands(commands.Cog, name="Other"):
 
     @commands.command(name="who", aliases=("whois", "info"))
     @commands.guild_only()
-    @commands.cooldown(rate=1, per=1, type=commands.cooldowns.BucketType.user)
+    @commands.dynamic_cooldown(bypass_for_mod_cooldown(rate=1, per=5), type=commands.cooldowns.BucketType.user)
     async def cmd_who(self, ctx: commands.Context, *, member: MemberOrUserConverter) -> None:
         """
         Returns information about a server member/discord user
