@@ -5,6 +5,8 @@ Module provides main set of commands. This module is required and must always be
 import asyncio
 import traceback
 import random
+import datetime
+import time
 from typing import (
     Optional
 )
@@ -14,6 +16,8 @@ import io
 
 import discord
 from discord.ext import commands
+import aiohttp
+import psutil
 
 
 import BoopliBot
@@ -26,6 +30,7 @@ from ..utils import (
     retrieve_modules,
     register_cog,
     is_owner_or_admin,
+    bypass_for_owner_cooldown,
     validate_prefix,
     sql_utils
 )
@@ -74,22 +79,116 @@ class RootCommands(commands.Cog, name="Root"):
         """
         self.bot = bot
 
-    @commands.command(name="ping")
+    @commands.command(name="ping", aliases=("latency", "statistic", "stats"))
+    @commands.max_concurrency(10, wait=True)
     @is_owner_or_admin()
-    @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.guild)
+    @commands.dynamic_cooldown(bypass_for_owner_cooldown(rate=1, per=10), type=commands.cooldowns.BucketType.guild)
     async def cmd_ping(self, ctx: commands.Context) -> None:
         """
         Basic ping command
         """
-        ping = round(self.bot.latency * 1000)
+        # Get ws latency
+        ws_latency = self.bot.latency * 1000
+
+        # Get bot latency
+        start = time.perf_counter()
+        await ctx.trigger_typing()
+        end = time.perf_counter()
+        bot_latency = max(
+            (end - start)*1000 - ws_latency,
+            0
+        )
+
+        # Get db latency
+        async with sql_utils.NewAsyncSession() as sesh:
+            start = time.perf_counter()
+            await sesh.execute(sql_utils.select(1))
+            end = time.perf_counter()
+
+            sql_db_latency = (end - start)*1000
+
+        # Get discord status
+        disc_status_update = "Unknown"
+        disc_status_ind = ""
+        disc_status_desc = "Unknown"
+        try:
+            async with aiohttp.ClientSession() as sesh:
+                async with sesh.get("https://discordstatus.com/api/v2/status.json") as req:
+                    data = await req.json()
+                    indicator = data["status"]["indicator"]
+                    if indicator:
+                        if indicator == "none":
+                            indicator = "stable"
+                        disc_status_ind = f" ({indicator})"
+
+                    description = data["status"]["description"]
+                    if description:
+                        disc_status_desc = description
+
+                    updated_at = data["page"]["updated_at"]
+                    if updated_at:
+                        disc_status_update = discord.utils.format_dt(
+                            datetime.datetime.fromisoformat(updated_at),
+                            "R"
+                        )
+
+        except:
+            # TODO: log?
+            pass
+
+        finally:
+            discord_status = (
+                f"{description}{disc_status_ind}\n"
+                f"Last status update was {disc_status_update}"
+            )
+
+        # Get process stats
+        # mem_stats = psutil.virtual_memory()
+        # cpu_usage = psutil.cpu_percent()
+        # total_mem = mem_stats.total
+        # mem_usage = mem_stats.percent
+        proc = psutil.Process()
+        with proc.oneshot():
+            proc.cpu_percent()
+            proc_cpu_usage = proc.cpu_percent()
+            if not proc_cpu_usage:
+                proc_cpu_usage = 0.1
+            proc_mem_usage = proc.memory_percent()
+            proc_mem_used = proc.memory_full_info().uss
+            runtime_s = int(time.time() - proc.create_time())
+            runtime_m = runtime_s // 60
+            runtime_h = runtime_m // 60
+            runtime_m %= 60
+            runtime_d = runtime_h // 24
+            runtime_h %= 24
+
+        server_stats = (
+            f"Runtime: {runtime_d} Days, {runtime_h} Hours, {runtime_m} Minutes\n"
+            f"CPU Usage: {proc_cpu_usage:0.1f}%\n"
+            f"Memory Usage: {proc_mem_used / 1024**2:0.0f} MiB ({proc_mem_usage:0.1f}%)"
+        )
 
         embed = discord.Embed()
-        embed.add_field(name=f"Pong! {ping} ms", value=EMPTY_EMBED_VALUE, inline=True)
+        embed.add_field(name=f"Bot Latency", value=f"{bot_latency:0.0f} ms", inline=False)
+        embed.add_field(name=f"WS Latency", value=f"{ws_latency:0.0f} ms", inline=False)
+        embed.add_field(name=f"SQL DB Latency", value=f"{sql_db_latency:0.0f} ms", inline=False)
+        embed.add_field(name=f"Discord Status:", value=discord_status, inline=False)
+        embed.add_field(name=f"Process Statistics:", value=server_stats, inline=False)
 
-        if ping < 150:
+        if (
+            bot_latency <= 50
+            and ws_latency <= 150
+            and sql_db_latency <= 50
+        ):
             color = EMB_COLOR_GREEN
-        elif ping < 200:
+
+        elif (
+            bot_latency <= 100
+            and ws_latency <= 300
+            and sql_db_latency <= 100
+        ):
             color = EMB_COLOR_ORANGE
+
         else:
             color = EMB_COLOR_RED
         embed.color = color
