@@ -56,7 +56,7 @@ class OtherCommands(commands.Cog, name="Other"):
     @commands.command(name="sudo", hidden=True)
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)
     async def cmd_sudo(self, ctx: commands.Context, command: Optional[str] = None) -> None:
-        await ctx.send(random.choice(OtherCommands.SUDO_CMD_RESPONSES))
+        await ctx.send(random.choice(OtherCommands.SUDO_CMD_RESPONSES), reference=ctx.message)
 
     @commands.command(name="about")
     @commands.cooldown(rate=1, per=15, type=commands.cooldowns.BucketType.guild)
@@ -93,7 +93,7 @@ class OtherCommands(commands.Cog, name="Other"):
             .set_footer(text=f"v{BoopliBot.__version__}")
         )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @commands.command(name="who", aliases=("whois", "info"))
     @commands.guild_only()
@@ -163,7 +163,7 @@ class OtherCommands(commands.Cog, name="Other"):
             inline=False
         )
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=embed, reference=ctx.message)
 
     @commands.command(name="getpfp", aliases=("getavatar", "getava"))
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)
@@ -174,7 +174,7 @@ class OtherCommands(commands.Cog, name="Other"):
         IN:
             member - the member whos avatar to return
         """
-        await ctx.send(member.avatar.url)
+        await ctx.send(member.avatar.url, reference=ctx.message)
 
     @commands.command(name="coin", aliases=("flip", "toss"))
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)
@@ -183,7 +183,7 @@ class OtherCommands(commands.Cog, name="Other"):
         Flips a coin
         """
         result = random.choice(("heads", "tails"))
-        await ctx.send(f"**{result.capitalize()}!**")
+        await ctx.send(f"**{result.capitalize()}!**", reference=ctx.message)
 
     @commands.command(name="choice", aliases=("select",))
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.user)
@@ -201,7 +201,7 @@ class OtherCommands(commands.Cog, name="Other"):
             used_cmd = ctx.invoked_with
             result = f"Nothing to `{used_cmd}` from."
 
-        await ctx.send(result)
+        await ctx.send(result, reference=ctx.message)
 
 
 def setup(bot: Bot):

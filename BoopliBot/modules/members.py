@@ -119,7 +119,7 @@ class MemberCommands(commands.Cog, name="Administration"):
             except discord.Forbidden:
                 response_warned += ATTENTION_NO_DM
 
-        await ctx.send(response_warned)
+        await ctx.send(response_warned, reference=ctx.message)
 
     @commands.command(name="unwarn")
     @commands.has_guild_permissions(kick_members=True)
@@ -171,7 +171,7 @@ class MemberCommands(commands.Cog, name="Administration"):
         else:
             response_unwarned = RESPONSE_NOWARNS.format(member=member.mention)
 
-        await ctx.send(response_unwarned)
+        await ctx.send(response_unwarned, reference=ctx.message)
 
     @commands.command(name="kick")
     @commands.has_guild_permissions(kick_members=True)
@@ -209,7 +209,7 @@ class MemberCommands(commands.Cog, name="Administration"):
                 response_kicked += ATTENTION_NO_DM
 
         await member.kick(reason=reason)
-        await ctx.send(response_kicked)
+        await ctx.send(response_kicked, reference=ctx.message)
 
     @commands.command(name="ban")
     @commands.has_guild_permissions(ban_members=True)
@@ -248,7 +248,7 @@ class MemberCommands(commands.Cog, name="Administration"):
 
         # NOTE: we're banning through the guild because member may be either discord.Member OR discord.User
         await ctx.guild.ban(member, reason=reason, delete_message_days=0)
-        await ctx.send(response_banned)
+        await ctx.send(response_banned, reference=ctx.message)
 
     @commands.command(name="unban")
     @commands.has_guild_permissions(ban_members=True)
@@ -287,7 +287,7 @@ class MemberCommands(commands.Cog, name="Administration"):
                     response_unbanned += ATTENTION_NO_DM
 
         finally:
-            await ctx.send(response_unbanned)
+            await ctx.send(response_unbanned, reference=ctx.message)
 
 
 def setup(bot: Bot):
