@@ -617,6 +617,12 @@ class Bot(commands.AutoShardedBot):
                 reference=context.message
             )
 
+        elif isinstance(exc, commands.MaxConcurrencyReached):
+            await context.send(
+                "Too many people are using this command. Try again later.",
+                reference=context.message
+            )
+
         elif isinstance(exc, commands.DisabledCommand):
             await context.send("This command is temporary disabled.", reference=context.message)
 

@@ -136,6 +136,7 @@ class RootCommands(commands.Cog, name="Root"):
         await ctx.send(f"{response} `{new_prefix}`.", reference=ctx.message)
 
     @commands.command(name="activity", aliases=("status", "game"))
+    @commands.max_concurrency(1)
     @commands.is_owner()
     async def cmd_activity(self, ctx: commands.Context, *, string: Optional[str] = None) -> None:
         """
@@ -153,10 +154,7 @@ class RootCommands(commands.Cog, name="Root"):
             activity = Bot.DEF_ACTIVITY
             self.bot.config.activity_text = ""
 
-        # TODO: replace run_in_executor with asyncio.to_thread
-        ev_loop: asyncio.BaseEventLoop = asyncio.get_running_loop()
-        await ev_loop.run_in_executor(None, self.bot.config.save_if_dirty)
-
+        await asyncio.to_thread(self.bot.config.save_if_dirty)
         await self.bot.change_presence(activity=activity)
 
     @commands.command(name="shutdown", aliases=("die", "kill", "slep", "sleep"))
