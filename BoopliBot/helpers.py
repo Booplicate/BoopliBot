@@ -12,15 +12,24 @@ from collections.abc import (
 )
 from typing import (
     Any,
-    Optional
+    Optional,
+    Union,
+    NamedTuple
 )
 
 
 import discord
 
 
-# Represents partial log entry for use in custom discord events
-PartialAuditLogEntry = namedtuple("PartialAuditLogEntry", "action user target reason")
+# PartialAuditLogEntry = namedtuple("PartialAuditLogEntry", ("action", "user", "target", "reason"))
+class PartialAuditLogEntry(NamedTuple):
+    """
+    Represents partial log entry for use in custom discord events
+    """
+    action: str
+    user: discord.Member
+    target: Union[discord.Member, discord.User]
+    reason: Optional[str]
 
 class NestedDictWrapper():
     """
