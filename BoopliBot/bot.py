@@ -5,7 +5,7 @@ Module contains the main classes for BoopliBot
 import sys
 import asyncio
 import logging
-# import datetime
+import weakref
 from typing import (
     Optional,
     Set
@@ -77,7 +77,7 @@ class Bot(commands.AutoShardedBot):
             raise errors.BotAlreadyExists()
 
         self = super().__new__(cls)
-        cls._instance = self
+        cls._instance = weakref.ref(self)
 
         return self
 
