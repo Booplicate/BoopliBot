@@ -23,7 +23,7 @@ from ..utils import (
     fmt_datetime
 )
 from ..converters import MemberOrUserConverter
-from ..extra_classes import PartialAuditLogEntry
+from ..helpers import PartialAuditLogEntry
 
 
 _cogs = set()

@@ -21,7 +21,7 @@ import BoopliBot
 from .converters import MemberOrUserConverter
 from .consts import FOLDER_MODULES, FOLDER_BOOPLIBOT
 from . import errors
-from .extra_classes import PartialAuditLogEntry, NestedDictWrapper
+from .helpers import PartialAuditLogEntry, NestedDictWrapper
 from .utils import (
     config_utils,
     sql_utils,

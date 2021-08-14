@@ -24,7 +24,7 @@ from ..errors import (
     MissingRequiredSubCommand
 )
 from ..converters import MemberOrUserConverter
-from ..extra_classes import PartialAuditLogEntry
+from ..helpers import PartialAuditLogEntry
 
 
 _cogs = set()
