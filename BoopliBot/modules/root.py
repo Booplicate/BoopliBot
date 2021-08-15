@@ -138,7 +138,7 @@ class RootCommands(commands.Cog, name="Root"):
 
         finally:
             discord_status = (
-                f"{description}{disc_status_ind}\n"
+                f"{disc_status_desc}{disc_status_ind}\n"
                 f"Last status update was {disc_status_update}"
             )
 
