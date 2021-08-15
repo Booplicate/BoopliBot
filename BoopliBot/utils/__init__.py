@@ -171,6 +171,22 @@ async def get_audit_log_for_action(guild: discord.Guild, action: discord.AuditLo
     return await log_iter.find(predicate)
 
 
+def _is_owner(bot, user: Union[discord.Member, discord.User]) -> bool:
+    """
+    Checks if the given user is owners
+
+    IN:
+        bot - bot instance
+        user - the user to check
+
+    OUT:
+        boolean
+    """
+    return (
+        (bot.owner_id and user.id == bot.owner_id)
+        or (bot.owner_ids and user.id in bot.owner_ids)
+    )
+
 def is_owner_or_admin():
     """
     Check for high-level commands (for owners and admins)
@@ -179,9 +195,22 @@ def is_owner_or_admin():
         bot = ctx.bot
         author = ctx.author
         return (
-            (bot.owner_id and author.id == bot.owner_id)
-            or (bot.owner_ids and author.id in bot.owner_ids)
+            _is_owner(bot, author)
             or author.guild_permissions.administrator
+        )
+
+    return commands.check(predicate)
+
+def is_owner_or_mod():
+    """
+    Check for mid-level commands (for owners and mods)
+    """
+    async def predicate(ctx: commands.Context):
+        bot = ctx.bot
+        author = ctx.author
+        return (
+            _is_owner(bot, author)
+            or author.guild_permissions.kick_members
         )
 
     return commands.check(predicate)
@@ -238,12 +267,7 @@ def bypass_for_owner_cooldown(rate: int, per: float) -> Callable[[discord.Messag
         BoopliBot.bot.Bot._instance is not None and the reference is actual
     """
     def cooldown(message: discord.Message) -> Optional[commands.Cooldown]:
-        author_id = message.author.id
-        bot = BoopliBot.bot.Bot._instance()
-        if (
-            (bot.owner_id and author_id == bot.owner_id)
-            or (bot.owner_ids and author_id in bot.owner_ids)
-        ):
+        if _is_owner(BoopliBot.bot.Bot._instance(), message.author):
             return None
 
         return commands.Cooldown(rate, per)

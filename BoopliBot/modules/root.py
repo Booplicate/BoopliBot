@@ -30,6 +30,7 @@ from ..utils import (
     retrieve_modules,
     register_cog,
     is_owner_or_admin,
+    is_owner_or_mod,
     bypass_for_owner_cooldown,
     validate_prefix,
     sql_utils
@@ -81,7 +82,7 @@ class RootCommands(commands.Cog, name="Root"):
 
     @commands.command(name="ping", aliases=("latency", "statistic", "stats"))
     @commands.max_concurrency(10, wait=True)
-    @is_owner_or_admin()
+    @is_owner_or_mod()
     @commands.dynamic_cooldown(bypass_for_owner_cooldown(rate=1, per=10), type=commands.cooldowns.BucketType.guild)
     async def cmd_ping(self, ctx: commands.Context) -> None:
         """
