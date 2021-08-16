@@ -16,7 +16,7 @@ import io
 
 import discord
 from discord.ext import commands
-import aiohttp
+import DiscordStatusPy
 import psutil
 
 
@@ -109,51 +109,62 @@ class RootCommands(commands.Cog, name="Root"):
             sql_db_latency = (end - start)*1000
 
         # Get discord status
-        disc_status_update = "Unknown"
+        disc_status_desc = "No data"
         disc_status_ind = ""
-        disc_status_desc = "Unknown"
-        try:
-            async with aiohttp.ClientSession() as sesh:
-                async with sesh.get("https://discordstatus.com/api/v2/status.json") as req:
-                    data = await req.json()
-                    indicator = data["status"]["indicator"]
-                    if indicator:
-                        if indicator == "none":
-                            indicator = "stable"
-                        disc_status_ind = f" ({indicator})"
+        disc_status_update = ""
+        disc_components = "No data"
 
-                    description = data["status"]["description"]
-                    if description:
-                        disc_status_desc = description
+        async with DiscordStatusPy.APIClient() as api_client:
+            api_client: DiscordStatusPy.APIClient
+            data = await api_client.get_status()
+            try:
+                temp_var: str = data["status"]["indicator"]
+                if temp_var and temp_var != "none":
+                    disc_status_ind = f" ({temp_var})"
 
-                    updated_at = data["page"]["updated_at"]
-                    if updated_at:
-                        disc_status_update = discord.utils.format_dt(
-                            datetime.datetime.fromisoformat(updated_at),
-                            "R"
-                        )
+                temp_var: str = data["status"]["description"]
+                if temp_var:
+                    disc_status_desc = temp_var
 
-        except:
-            # TODO: log?
-            pass
+                temp_var = data["page"]["updated_at"]
+                if temp_var:
+                    temp_var: str = discord.utils.format_dt(
+                        datetime.datetime.fromisoformat(temp_var),
+                        "R"
+                    )
+                    disc_status_update = f" (last updated {temp_var})"
 
-        finally:
-            discord_status = (
-                f"{disc_status_desc}{disc_status_ind}\n"
-                f"Last status update was {disc_status_update}"
-            )
+            except KeyError:
+                pass
+
+            data = await api_client.get_components()
+            try:
+                names = {"API", "CloudFlare", "Media Proxy", "Search", "Voice"}
+                components = filter(lambda item: item["name"] in names, data["components"])
+                parts = list()
+                for item in components:
+                    name = item["name"]
+                    status = "✅" if item["status"] == "operational" else "❌"
+                    parts.append(f"- {name} {status}")
+
+                disc_components = "\n".join(parts)
+
+            except KeyError:
+                pass
+
+        discord_status = f"{disc_status_desc}{disc_status_ind}:\n{disc_components}"
 
         # Get process stats
         # mem_stats = psutil.virtual_memory()
-        # cpu_usage = psutil.cpu_percent()
+        cpu_usage = psutil.cpu_percent()
         # total_mem = mem_stats.total
         # mem_usage = mem_stats.percent
         proc = psutil.Process()
         with proc.oneshot():
             proc.cpu_percent()
-            proc_cpu_usage = proc.cpu_percent()
-            if not proc_cpu_usage:
-                proc_cpu_usage = 0.1
+            # proc_cpu_usage = proc.cpu_percent()
+            # if not proc_cpu_usage:
+            #     proc_cpu_usage = 0.1
             proc_mem_usage = proc.memory_percent()
             proc_mem_used = proc.memory_full_info().uss
             runtime_s = int(time.time() - proc.create_time())
@@ -165,16 +176,16 @@ class RootCommands(commands.Cog, name="Root"):
 
         server_stats = (
             f"Runtime: {runtime_d} Days, {runtime_h} Hours, {runtime_m} Minutes\n"
-            f"CPU Usage: {proc_cpu_usage:0.1f}%\n"
+            f"CPU Usage: {cpu_usage:0.1f}%\n"
             f"Memory Usage: {proc_mem_used / 1024**2:0.0f} MiB ({proc_mem_usage:0.1f}%)"
         )
 
         embed = discord.Embed()
-        embed.add_field(name=f"Bot Latency", value=f"{bot_latency:0.0f} ms", inline=False)
-        embed.add_field(name=f"WS Latency", value=f"{ws_latency:0.0f} ms", inline=False)
-        embed.add_field(name=f"SQL DB Latency", value=f"{sql_db_latency:0.0f} ms", inline=False)
-        embed.add_field(name=f"Discord Status:", value=discord_status, inline=False)
-        embed.add_field(name=f"Process Statistics:", value=server_stats, inline=False)
+        embed.add_field(name="Bot Latency:", value=f"{bot_latency:0.0f} ms", inline=False)
+        embed.add_field(name="WS Latency:", value=f"{ws_latency:0.0f} ms", inline=False)
+        embed.add_field(name="SQL DB Latency:", value=f"{sql_db_latency:0.0f} ms", inline=False)
+        embed.add_field(name=f"Discord Status{disc_status_update}:", value=discord_status, inline=False)
+        embed.add_field(name="Bot Status:", value=server_stats, inline=False)
 
         if (
             bot_latency <= 50
