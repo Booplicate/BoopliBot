@@ -315,6 +315,8 @@ class Bot(commands.AutoShardedBot):
             before.pinned != after.pinned
             or before.attachments != after.attachments
             or before.embeds != after.embeds
+            or before.channel != after.channel
+            or before.components != after.components
         ):
             return
 
