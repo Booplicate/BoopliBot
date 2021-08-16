@@ -13,7 +13,7 @@ import BoopliBot
 
 __title__ = "BoopliBot"
 __author__ = "Booplicate"
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 
 VersionInfo = namedtuple("VersionInfo", "major minor micro")
