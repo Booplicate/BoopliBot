@@ -306,6 +306,36 @@ class _LogEmbedBuilder():
         """
         return cls._get_mod_action_embed("User Has Been Unbanned", member, log_entry)
 
+    @classmethod
+    def _get_base_thread_embed(
+        cls,
+        title: str,
+        thread: discord.Thread
+    ) -> discord.Embed:
+        """
+        Builds a base embed for thread logs
+        """
+        return (
+            cls._get_base_embed(title)
+            .add_field(name="Name:", value=f"{thread.mention} ({thread.name})", inline=False)
+            .add_field(name="Thread ID:", value=f"{thread.id}", inline=False)
+            .add_field(name="Parent channel:", value=f"{thread.parent.mention}", inline=False)
+        )
+
+    @classmethod
+    def get_thread_created_embed(cls, thread: discord.Thread) -> discord.Embed:
+        """
+        Builds an embed for thread creation event
+        """
+        return cls._get_base_thread_embed("New thread created", thread)
+
+    @classmethod
+    def get_thread_deleted_embed(cls, thread: discord.Thread) -> discord.Embed:
+        """
+        Builds an embed for thread deletion event
+        """
+        return cls._get_base_thread_embed("Thread deleted", thread)
+
 
 @register_cog(_cogs)
 class Logger(commands.Cog, command_attrs=dict(hidden=True)):
@@ -516,6 +546,44 @@ class Logger(commands.Cog, command_attrs=dict(hidden=True)):
             return
 
         embed = _LogEmbedBuilder.get_unban_embed(user, log_entry)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener(name="on_thread_join")
+    async def on_thread_join(self, thread: discord.Thread) -> None:
+        """
+        Callback on new thread creation
+
+        IN:
+            thread - Thread object
+        """
+        # Only log creation
+        if thread.me is not None:
+            return
+
+        guild = thread.guild
+        log_channel: Optional[int] = self.bot.guilds_configs[guild.id].log_channel
+        log_channel: Optional[discord.TextChannel] = guild.get_channel(log_channel)
+        if log_channel is None:
+            return
+
+        embed = _LogEmbedBuilder.get_thread_created_embed(thread)
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener(name="on_thread_delete")
+    async def on_thread_delete(self, thread: discord.Thread) -> None:
+        """
+        Callback on thread deletion
+
+        IN:
+            thread - Thread object
+        """
+        guild = thread.guild
+        log_channel: Optional[int] = self.bot.guilds_configs[guild.id].log_channel
+        log_channel: Optional[discord.TextChannel] = guild.get_channel(log_channel)
+        if log_channel is None:
+            return
+
+        embed = _LogEmbedBuilder.get_thread_deleted_embed(thread)
         await log_channel.send(embed=embed)
 
 
