@@ -6,6 +6,7 @@ import sys
 import asyncio
 import logging
 import weakref
+import re
 from typing import (
     Optional,
     Set
@@ -547,6 +548,17 @@ class Bot(commands.AutoShardedBot):
                 (
                     f"Missing required argument: `{exc.param.name}`. Correct syntax: "
                     f"`{context.prefix}{command.qualified_name} {command.signature}`."
+                ),
+                reference=context.message
+            )
+
+        elif isinstance(exc, commands.BadArgument):
+            # HACK: This isn't ideal, but the best we can do is use re
+            conv_type, param_name = re.findall(r'"(\w+?)"', str(exc))
+            await context.send(
+                (
+                    f"Invalid argument. Couldn't convert parameter `{param_name}` into `{conv_type}`.\n"
+                    f"Type `{context.prefix}help {context.command.qualified_name}` to get help on the command."
                 ),
                 reference=context.message
             )
