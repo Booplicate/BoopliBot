@@ -2,6 +2,7 @@
 Module provides set of commands to work with guild members.
 """
 
+import asyncio
 from typing import (
     Optional
 )
@@ -290,23 +291,58 @@ class MemberCommands(commands.Cog, name="Administration"):
             await ctx.send(response_unbanned, reference=ctx.message)
 
     @commands.command(name="purge")
-    @commands.has_guild_permissions(manage_messages=True)
+    @commands.has_guild_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(manage_messages=True)
     @commands.guild_only()
+    @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.guild)
     async def cmd_purge(self, ctx: commands.Context, limit: int, *, target: Optional[MemberOrUserConverter] = None) -> None:
         """
         Goes through the last messages and deletes them
 
         IN:
-            limit - the number of messages to go through. Maximum 100, if you specify target, then maximum 200
+            limit - the number of messages to go through, mximum 100
             target - the messages' author, if specified, deletes messages only from that person
         """
-        max_limit = 100 if target is None else 200
-        limit = max(min(limit, max_limit), 0)
+        limit = max(min(limit, 100), 0)
         check = lambda message: target is None or message.author == target
 
         deleted_msgs = await ctx.channel.purge(limit=limit, check=check)
         total_deleted = len(deleted_msgs)
+        ending = "" if total_deleted == 1 else "s"
+
+        try:
+            og_message = await ctx.channel.fetch_message(ctx.message.id)
+
+        except discord.NotFound:
+            og_message = None
+
+        await ctx.send(f"Deleted {total_deleted} message{ending}.", reference=og_message)
+
+    @commands.command(name="masspurge")
+    @commands.has_guild_permissions(administrator=True)
+    @commands.bot_has_guild_permissions(manage_messages=True)
+    @commands.guild_only()
+    @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.guild)
+    async def cmd_masspurge(self, ctx: commands.Context, limit: int, *, target: MemberOrUserConverter) -> None:
+        """
+        Goes through the last messages in this server and deletes them
+
+        IN:
+            limit - the number of messages to go through, maximum 100
+                NOTE: This applies to EVERY channel
+            target - the messages' author
+        """
+        limit = max(min(limit, 100), 0)
+        check = lambda message: message.author == target
+        total_deleted = 0
+
+        for channel in ctx.guild.text_channels:
+            deleted_msgs = await channel.purge(limit=limit, check=check)
+            amount_deleted = len(deleted_msgs)
+            total_deleted += amount_deleted
+            if amount_deleted > 0:
+                await asyncio.sleep(1.0)
+
         ending = "" if total_deleted == 1 else "s"
 
         try:
