@@ -289,6 +289,34 @@ class MemberCommands(commands.Cog, name="Administration"):
         finally:
             await ctx.send(response_unbanned, reference=ctx.message)
 
+    @commands.command(name="purge")
+    @commands.has_guild_permissions(manage_messages=True)
+    @commands.bot_has_guild_permissions(manage_messages=True)
+    @commands.guild_only()
+    async def cmd_purge(self, ctx: commands.Context, limit: int, *, target: Optional[MemberOrUserConverter] = None) -> None:
+        """
+        Goes through the last messages and deletes them
+
+        IN:
+            limit - the number of messages to go through. Maximum 100, if you specify target, then maximum 200
+            target - the messages' author, if specified, deletes messages only from that person
+        """
+        max_limit = 100 if target is None else 200
+        limit = max(min(limit, max_limit), 0)
+        check = lambda message: target is None or message.author == target
+
+        deleted_msgs = await ctx.channel.purge(limit=limit, check=check)
+        total_deleted = len(deleted_msgs)
+        ending = "" if total_deleted == 1 else "s"
+
+        try:
+            og_message = await ctx.channel.fetch_message(ctx.message.id)
+
+        except discord.NotFound:
+            og_message = None
+
+        await ctx.send(f"Deleted {total_deleted} message{ending}.", reference=og_message)
+
 
 def setup(bot: Bot):
     for cog in _cogs:
