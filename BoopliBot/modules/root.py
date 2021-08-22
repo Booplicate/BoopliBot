@@ -12,6 +12,11 @@ from typing import (
 )
 import re
 import io
+import ast
+from functools import partial
+from inspect import isawaitable
+from builtins import print as _print
+from pprint import pprint as _pprint
 
 
 import discord
@@ -611,7 +616,13 @@ class RootCommands(commands.Cog, name="Root"):
         """
         string = from_code_block(string)
         try:
-            output = eval(string)
+            code = compile(string, "<string>", "eval", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+            result = eval(code)
+            if isawaitable(result):
+                output = await result
+
+            else:
+                output = result
 
             if isinstance(output, str):
                 output = f'"{output}"'
@@ -643,17 +654,16 @@ class RootCommands(commands.Cog, name="Root"):
         IN:
             string - the string to exec
         """
-        from builtins import print as _print
-        from pprint import pprint as _pprint
-        from functools import partial
-
         buffer = io.StringIO()
         print = partial(_print, file=buffer)
         pprint = partial(_pprint, stream=buffer, indent=1, depth=3, width=40, compact=True)
 
         string = from_code_block(string)
         try:
-            exec(string)
+            code = compile(string, "<string>", "exec", flags=ast.PyCF_ALLOW_TOP_LEVEL_AWAIT)
+            result = eval(code)
+            if isawaitable(result):
+                await result
 
         except Exception as e:
             status = "Failure❌"
