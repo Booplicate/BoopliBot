@@ -3,6 +3,7 @@ Module provides set of commands to work with guild members.
 """
 
 import asyncio
+import datetime
 from typing import (
     Optional
 )
@@ -291,13 +292,14 @@ class MemberCommands(commands.Cog, name="Administration"):
             await ctx.send(response_unbanned, reference=ctx.message)
 
     @commands.command(name="purge")
-    @commands.has_guild_permissions(ban_members=True)
-    @commands.bot_has_guild_permissions(manage_messages=True)
+    @commands.has_guild_permissions(ban_members=True, read_message_history=True)
+    @commands.bot_has_guild_permissions(manage_messages=True, read_message_history=True)
     @commands.guild_only()
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.guild)
     async def cmd_purge(self, ctx: commands.Context, limit: int, *, target: Optional[MemberOrUserConverter] = None) -> None:
         """
-        Goes through the last messages and deletes them
+        Goes through the last messages in the channel and deletes them.
+        Only delete messages created within last 2 weeks.
 
         IN:
             limit - the number of messages to go through, mximum 100
@@ -305,8 +307,9 @@ class MemberCommands(commands.Cog, name="Administration"):
         """
         limit = max(min(limit, 100), 0)
         check = lambda message: target is None or message.author == target
+        after = ctx.message.created_at - datetime.timedelta(weeks=2)
 
-        deleted_msgs = await ctx.channel.purge(limit=limit, check=check)
+        deleted_msgs = await ctx.channel.purge(limit=limit, check=check, after=after)
         total_deleted = len(deleted_msgs)
         ending = "" if total_deleted == 1 else "s"
 
@@ -319,25 +322,27 @@ class MemberCommands(commands.Cog, name="Administration"):
         await ctx.send(f"Deleted {total_deleted} message{ending}.", reference=og_message)
 
     @commands.command(name="masspurge")
-    @commands.has_guild_permissions(administrator=True)
-    @commands.bot_has_guild_permissions(manage_messages=True)
+    @commands.has_guild_permissions(administrator=True, read_message_history=True)
+    @commands.bot_has_guild_permissions(manage_messages=True, read_message_history=True)
     @commands.guild_only()
     @commands.cooldown(rate=1, per=5, type=commands.cooldowns.BucketType.guild)
     async def cmd_masspurge(self, ctx: commands.Context, limit: int, *, target: MemberOrUserConverter) -> None:
         """
-        Goes through the last messages in this server and deletes them
+        Goes through the last messages in this server and deletes them.
+        Only delete messages created within last 2 weeks.
 
         IN:
             limit - the number of messages to go through, maximum 100
                 NOTE: This applies to EVERY channel
-            target - the messages' author
+            target - the messages' author (required)
         """
         limit = max(min(limit, 100), 0)
         check = lambda message: message.author == target
+        after = ctx.message.created_at - datetime.timedelta(weeks=2)
         total_deleted = 0
 
         for channel in ctx.guild.text_channels:
-            deleted_msgs = await channel.purge(limit=limit, check=check)
+            deleted_msgs = await channel.purge(limit=limit, check=check, after=after)
             amount_deleted = len(deleted_msgs)
             total_deleted += amount_deleted
             if amount_deleted > 0:
