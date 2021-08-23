@@ -293,6 +293,32 @@ class RootCommands(commands.Cog, name="Root"):
         await ctx.channel.send("Restarting...", reference=ctx.message)
         await self.bot.close()
 
+    @commands.command(name="maintenance", aliases=("service", "serv"))
+    @commands.is_owner()
+    async def cmd_toggle_maintenance(self, ctx: commands.Context, flag: bool) -> None:
+        """
+        Toggles maintenance mode
+
+        IN:
+            flag - boolean
+        """
+        if self.bot.is_in_maintenance is not flag:
+            self.bot.is_in_maintenance = flag
+            if flag:
+                msg = "Turned on maintenance mode."
+
+            else:
+                msg = "Turned off maintenance mode."
+
+        else:
+            if flag:
+                msg = "Already in maintenance mode."
+
+            else:
+                msg = "Already not in maintenance mode."
+
+        await ctx.channel.send(msg, reference=ctx.message)
+
     @commands.group(name="module", aliases=("modules", "m"), invoke_without_command=True)
     @commands.is_owner()
     async def cmd_module(self, ctx: commands.Context) -> None:

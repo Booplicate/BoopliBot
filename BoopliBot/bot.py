@@ -110,7 +110,9 @@ class Bot(commands.AutoShardedBot):
 
         self.exit_code = Bot.EXIT_CODE_CRASH
         self.cache_ready_lock = asyncio.Event()
+        self.is_in_maintenance = False
 
+        self.add_global_checks()
         self.load_modules()
 
         self.logger = logging.getLogger(f"{__name__}.{type(self).__name__}")
@@ -128,6 +130,17 @@ class Bot(commands.AutoShardedBot):
         """
         Bot._instance = None
 
+    def add_global_checks(self) -> None:
+        """
+        Registers global checks for the bot.
+        """
+        async def check_for_maintenance(ctx: commands.Context) -> bool:
+            if ctx.bot.is_in_maintenance and not await self.is_owner(ctx.author):
+                raise errors.MaintenanceInProgress(ctx.command)
+            return True
+
+        self.add_check(check_for_maintenance)
+
     def load_modules(self) -> None:
         """
         Loads modules from disk. This happens during init,
@@ -141,6 +154,13 @@ class Bot(commands.AutoShardedBot):
     @staticmethod
     def __get_prefixes(bot, msg: discord.Message) -> Set[str]:
         """
+        Returns valid prefixes for the guild
+
+        IN:
+            msg - the message object
+
+        OUT:
+            set of strings
         """
         prefixes = {bot.user.mention, f"<@!{bot.user.id}>"}
 
@@ -643,6 +663,9 @@ class Bot(commands.AutoShardedBot):
 
         elif isinstance(exc, commands.DisabledCommand):
             await context.send("This command is temporary disabled.", reference=context.message)
+
+        elif isinstance(exc, errors.MaintenanceInProgress):
+            await context.send("Maintenance in progress. Try again later.", reference=context.message)
 
         else:
             exc_repr = repr(exc)

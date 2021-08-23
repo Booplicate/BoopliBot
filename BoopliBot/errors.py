@@ -79,3 +79,11 @@ class MemberOrUserNotFound(commands.BadArgument):
     def __init__(self, argument):
         self.argument = argument
         super().__init__(f"Couldn't convert {argument} into a discord member/user.")
+
+class MaintenanceInProgress(commands.CommandError):
+    """
+    Exception raised when a command was invoked during maintenance
+    """
+    def __init__(self, command: commands.Command):
+        self.command = command
+        super().__init__(f"The global check for maintenance for command {command.qualified_name} failed.")
