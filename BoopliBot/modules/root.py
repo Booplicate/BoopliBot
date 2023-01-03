@@ -172,15 +172,15 @@ class RootCommands(commands.Cog, name="Root"):
             #     proc_cpu_usage = 0.1
             proc_mem_usage = proc.memory_percent()
             proc_mem_used = proc.memory_full_info().uss
-            runtime_s = int(time.time() - proc.create_time())
-            runtime_m = runtime_s // 60
-            runtime_h = runtime_m // 60
-            runtime_m %= 60
-            runtime_d = runtime_h // 24
-            runtime_h %= 24
+            uptime_s = int(time.time() - proc.create_time())
+            uptime_m = uptime_s // 60
+            uptime_h = uptime_m // 60
+            uptime_m %= 60
+            uptime_d = uptime_h // 24
+            uptime_h %= 24
 
         server_stats = (
-            f"Runtime: {runtime_d} Days, {runtime_h} Hours, {runtime_m} Minutes\n"
+            f"Uptime: {uptime_d} Days, {uptime_h} Hours, {uptime_m} Minutes\n"
             f"CPU Usage: {cpu_usage:0.1f}%\n"
             f"Memory Usage: {proc_mem_used / 1024**2:0.0f} MiB ({proc_mem_usage:0.1f}%)"
         )
